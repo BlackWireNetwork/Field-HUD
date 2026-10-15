@@ -19,7 +19,7 @@ Field HUD Pro is a serverless, offline-capable Progressive Web App (PWA) designe
 
 - **Boundary Reconnaissance and Recovery:** A crew chief uses the mobile map overlay to navigate toward historical property corners. By querying live county parcel data and using real-time State Plane coordinates, they can efficiently locate buried iron pins or concrete monuments in overgrown terrain.
     
-- **Topographic and As-Built Surveys:** A field technician maps a newly paved parking lot. By utilizing the application's Smart Linework modifiers, they walk the edge of pavement and back of curb, automatically generating CAD-ready polylines on their screen in real time.
+- **Topographic and As-Built Surveys:** A crew chief maps a newly paved parking lot. By utilizing the application's Smart Linework modifiers, they walk the edge of pavement and back of curb, automatically generating CAD-ready polylines on their screen in real time.
     
 - **Construction Layout and Staking:** A surveyor imports a CSV file of design coordinates for building foundations. They select a point, and the HUD provides real-time telemetry—Delta North, Delta East, and Distance—guiding them exactly where to set the physical marker.
     
