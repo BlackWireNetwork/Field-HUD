@@ -7,6 +7,20 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
+/*
+ * ==============================================================================
+ * FIELD HUD: PRO EDITION (EDITION 2026)
+ * PROPRIETARY AND CONFIDENTIAL
+ * 
+ * Copyright (c) 2026. All Rights Reserved.
+ * 
+ * NOTICE: All intellectual property, algorithms, spatial processing workflows, 
+ * and source code contained herein are the sole property of the author. 
+ * Unauthorized copying, distribution, reverse engineering, or commercial 
+ * exploitation of this file, via any medium, is strictly prohibited.
+ * ==============================================================================
+ */
+
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) { registration.unregister(); }
@@ -28,7 +42,6 @@ if ('serviceWorker' in navigator) {
 }
 body.scale-compact { --ui-scale: 0.82rem; --btn-pad: 0.5rem; }
 body.scale-large { --ui-scale: 1.15rem; --btn-pad: 1rem; }
-/* STABLE MAP CONTAINER FIX: Guarantees Leaflet calculates proper pixel dimensions */
 html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; color: white; background: #000; font-size: var(--ui-scale); }
 #map { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; }
 .glass-panel { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -189,7 +202,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are armed. The professional surveyor or crew chief in charge is strictly responsible for verifying all field measurements.
 </p>
 <div style="display: flex; gap: 1rem;">
-<button class="btn" style="background: var(--success);" onclick="document.getElementById('termsOverlay').style.display='none';">AGREE & ENTER</button>
+<button class="btn" style="background: var(--success);" onclick="requestGeoPermissionAndEnter()">AGREE & ENTER</button>
 </div>
 </div>
 </div>
@@ -422,7 +435,6 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 </div>
 </div>
 
-<!-- CAD LAYER & POINT FILTER MANAGER -->
 <div id="cadManagerOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 500px;">
 <div class="flex justify-between items-center mb-4">
@@ -443,7 +455,6 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 </div>
 </div>
 
-<!-- ABOUT & LEGAL OVERLAY -->
 <div id="aboutOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 550px;">
 <div class="flex justify-between items-center mb-3">
@@ -469,7 +480,6 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 </div>
 </div>
 
-<!-- FIELD MANUAL OVERLAY -->
 <div id="helpOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 700px;">
 <div class="flex justify-between items-center mb-2">
@@ -601,43 +611,59 @@ let lastSpeechTime = 0;
 let activeAlignment = null; 
 let lastNmeaTime = 0; 
 
-// User Location & Geolocation Fallback Tracking
 let userMarker = null;
 let lastKnownLat = null;
 let lastKnownLon = null;
 let lastKnownAccuracy = 999;
+let activeTargetPoint = null;
 
-if ('geolocation' in navigator) {
-    navigator.geolocation.watchPosition(
-        (position) => {
-            lastKnownLat = position.coords.latitude;
-            lastKnownLon = position.coords.longitude;
-            lastKnownAccuracy = position.coords.accuracy * 3.28084; // Convert meters to feet
+function startGeoTracking() {
+    if ('geolocation' in navigator) {
+        navigator.geolocation.watchPosition(
+            (position) => {
+                lastKnownLat = position.coords.latitude;
+                lastKnownLon = position.coords.longitude;
+                lastKnownAccuracy = position.coords.accuracy * 3.28084;
 
-            const latlng = [lastKnownLat, lastKnownLon];
-            
-            if (!userMarker) {
-                userMarker = L.marker(latlng, {
-                    icon: L.divIcon({ className: 'blue-dot', iconSize: [20, 20] })
-                }).addTo(map);
-            } else {
-                userMarker.setLatLng(latlng);
-            }
+                const latlng = [lastKnownLat, lastKnownLon];
+                
+                if (!userMarker) {
+                    userMarker = L.marker(latlng, {
+                        icon: L.divIcon({ className: 'blue-dot', iconSize: [20, 20] })
+                    }).addTo(map);
+                } else {
+                    userMarker.setLatLng(latlng);
+                }
 
-            // Only update status if external high-precision NMEA is inactive (> 5s)
-            if (Date.now() - lastNmeaTime > 5000) {
-                document.getElementById('statusText').innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
-                document.getElementById('statusText').style.color = '#38bdf8';
-            }
-        },
-        (error) => {
-            console.error(error);
-            document.getElementById('statusText').innerText = 'GPS PERMISSION DENIED';
-            document.getElementById('statusText').style.color = 'var(--danger)';
-        },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
-    );
+                if (Date.now() - lastNmeaTime > 5000) {
+                    document.getElementById('statusText').innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
+                    document.getElementById('statusText').style.color = '#38bdf8';
+                }
+
+                if (activeTargetPoint) {
+                    updateActiveStakeoutTelemetry();
+                }
+            },
+            (error) => {
+                console.error(error);
+                document.getElementById('statusText').innerText = 'GPS PERMISSION DENIED';
+                document.getElementById('statusText').style.color = 'var(--danger)';
+            },
+            { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+        );
+    }
 }
+
+window.requestGeoPermissionAndEnter = function() {
+    document.getElementById('termsOverlay').style.display = 'none';
+    if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => { startGeoTracking(); },
+            (err) => { alert("Location permission is required for live GPS tracking."); startGeoTracking(); },
+            { enableHighAccuracy: true }
+        );
+    }
+};
 
 let wakeLock = null;
 window.requestWakeLock = async function() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} };
@@ -682,13 +708,48 @@ function updateStakeoutArrow(dN, dE) {
     if (arrowEl) arrowEl.innerText = arrowChar;
 }
 
-function speakStakeout(dN, dE, cfStr) {
-    if(!window.ttsEnabled || !('speechSynthesis' in window)) return;
-    const now = Date.now(); if(now - lastSpeechTime < 4000) return; lastSpeechTime = now;
-    let text = `${dN > 0 ? 'North' : 'South'} ${Math.abs(dN).toFixed(1)}, `;
-    text += `${dE > 0 ? 'East' : 'West'} ${Math.abs(dE).toFixed(1)}`;
-    if(cfStr) { text += `, ${cfStr.includes('C') ? 'Cut' : 'Fill'} ${cfStr.replace(/[^\d.]/g, '')}`; }
-    const u = new SpeechSynthesisUtterance(text); u.volume = window.ttsVolume; speechSynthesis.speak(u);
+window.setStakeoutTarget = function(idx) {
+    activeTargetPoint = pinData[idx];
+    document.getElementById('targetIndicator').style.display = 'block';
+    map.closePopup();
+    updateActiveStakeoutTelemetry();
+    alert(`Target Locked: PT ${activeTargetPoint.id} (${activeTargetPoint.desc})`);
+};
+
+window.centerOnPoint = function(lat, lng) {
+    map.setView([lat, lng], 20);
+    map.closePopup();
+};
+
+window.deletePointFromMap = async function(idx) {
+    if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
+    map.removeLayer(droppedPins[idx]); 
+    pinData.splice(idx, 1); 
+    droppedPins.splice(idx, 1);
+    await savePinsToDB(); 
+    map.closePopup();
+    rebuildSmartLinework();
+};
+
+function updateActiveStakeoutTelemetry() {
+    if (!activeTargetPoint || !lastKnownLat) return;
+    const zone = document.getElementById('spcZoneSelect').value;
+    const userSpc = proj4('EPSG:4326', zone, [lastKnownLon, lastKnownLat]);
+    const targetSpc = proj4('EPSG:4326', zone, [activeTargetPoint.lng, activeTargetPoint.lat]);
+
+    const dN = targetSpc[1] - userSpc[1];
+    const dE = targetSpc[0] - userSpc[0];
+    const dist = Math.sqrt((dN * dN) + (dE * dE));
+
+    document.getElementById('telDistHeader').innerText = `${dist.toFixed(2)} FT`;
+    document.getElementById('telDeltas').innerText = `ΔN: ${dN.toFixed(2)}' | ΔE: ${dE.toFixed(2)}'`;
+    updateStakeoutArrow(dN, dE);
+    drawBullseye(dN, dE, dist);
+
+    const ind = document.getElementById('targetIndicator');
+    ind.className = '';
+    if(dist < 0.2) ind.classList.add('close');
+    else if(dist < 2.0) ind.classList.add('near');
 }
 
 let currentCapturedPhoto = null; let selPtA = null, selPtB = null;
@@ -773,13 +834,12 @@ let cogoLineLayer = L.polyline([], {color: '#38bdf8', weight: 3, dashArray: '6, 
 let stationLineLayer = L.polyline([], {color: '#fcd34d', weight: 3, dashArray: '4, 4'}).addTo(map);
 let activeStrings = {};
 
-// Point Category Filters State
 let pointFilters = { MON: true, PAV: true, UTIL: true, OTHER: true };
 window.togglePointFilter = function(category, state) {
     pointFilters[category] = state;
     droppedPins.forEach(m => map.removeLayer(m));
     droppedPins = [];
-    pinData.forEach(renderPin);
+    pinData.forEach((p, idx) => renderPin(p, idx));
 };
 
 function getPointCategory(code) {
@@ -800,13 +860,13 @@ async function loadProjectData() {
     Object.values(activeStrings).forEach(pl => { if(pl) map.removeLayer(pl); }); activeStrings = {};
     cogoLineLayer.setLatLngs([]); stationLineLayer.setLatLngs([]); 
     pinData = (await localforage.getItem(activeProjectId)) || []; 
-    pinData.forEach(renderPin); rebuildSmartLinework(); clearCogoSelection();
+    pinData.forEach((p, idx) => renderPin(p, idx)); rebuildSmartLinework(); clearCogoSelection();
 }
 
 async function savePinsToDB() { await localforage.setItem(activeProjectId, pinData); }
 initDB();
 
-function renderPin(p) {
+function renderPin(p, idx) {
     const cat = getPointCategory(p.desc);
     if (!pointFilters[cat]) return;
 
@@ -818,7 +878,19 @@ function renderPin(p) {
         fillOpacity: 0.9
     }).addTo(map);
 
-    marker.bindPopup(`<b>PT ${p.id}</b><br>${p.desc}`);
+    const popupContent = `
+        <div style="font-family:sans-serif; text-align:center; min-width:140px;">
+            <b style="font-size:0.95rem; color:#3b82f6;">PT ${p.id}</b><br>
+            <span style="font-size:0.8rem; font-weight:bold; color:#333;">${p.desc}</span><br>
+            <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.6rem;">
+                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${idx})">🎯 STAKE OUT</button>
+                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${p.lat}, ${p.lng})">🔍 CENTER</button>
+                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${idx})">🗑️ DELETE</button>
+            </div>
+        </div>
+    `;
+
+    marker.bindPopup(popupContent);
     droppedPins.push(marker);
 }
 
@@ -852,7 +924,7 @@ window.handleCSVImport = function(event) {
                 importedCount++;
             }
         }
-        if(importedCount > 0) { await savePinsToDB(); droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${importedCount} stakeout points!`); } else { alert("No valid PNEZD points found in CSV."); }
+        if(importedCount > 0) { await savePinsToDB(); droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; pinData.forEach((p, idx) => renderPin(p, idx)); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${importedCount} stakeout points!`); } else { alert("No valid PNEZD points found in CSV."); }
         event.target.value = ''; 
     }; reader.readAsText(file);
 };
@@ -950,7 +1022,7 @@ async function savePin(lat, lng) {
 const baseStartId = parseInt(document.getElementById('startIdInput').value) || 1; const nextId = pinData.length > 0 ? Math.max(...pinData.map(p=>p.id)) + 1 : baseStartId;
 const p = { id: nextId, lat, lng, desc: getFinalDescription(), photo: currentCapturedPhoto }; 
 pinData.push(p); currentCapturedPhoto = null; document.getElementById('photoStatusIndicator').style.display = 'none';
-await savePinsToDB(); renderPin(p); rebuildSmartLinework();
+await savePinsToDB(); renderPin(p, pinData.length - 1); rebuildSmartLinework();
 document.getElementById('pointNote').value = ''; searchInput.value = ''; activeModifiers = []; document.querySelectorAll('.mod-btn').forEach(b => b.classList.remove('active')); updatePreview(); 
 }
 
@@ -983,7 +1055,6 @@ window.solveCurve = function() {
     document.getElementById('curveL').innerText = `${length.toFixed(2)} FT`; document.getElementById('curveT').innerText = `${tangent.toFixed(2)} FT`; document.getElementById('curveC').innerText = `${chord.toFixed(2)} FT`;
 };
 
-// Client-Side File Download Helper (Server-free)
 function downloadFile(filename, content, type = 'text/plain') {
     const blob = new Blob([content], { type: type });
     const url = URL.createObjectURL(blob);
@@ -1055,7 +1126,7 @@ window.exportFieldBookLocal = function() {
 
 window.changeUIScale = function(scaleClass) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(scaleClass !== 'scale-normal') document.body.classList.add(scaleClass); localStorage.setItem('uiScale', scaleClass); };
 window.updateStartId = function(val) { localStorage.setItem('startIdInput', val); }
-document.getElementById('startIdInput').value = localStorage.getItem('startIdInput') || 1;
+document.getElementById('startIdInput').value = localStorage.getItem('startIdInput'] || 1;
 window.togglePocketMode = () => { const el = document.getElementById('pocketModeOverlay'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
 </script>
 </body>
