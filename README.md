@@ -1,4 +1,5 @@
-link to the tools webpage here: https://ilearn88.github.io/Field-HUD/
+Link to the tools webpage here: https://ilearn88.github.io/Field-HUD/
+May neee to copy the link and paste it in your Web Browser and manually allow location services in your browser settings
 
 ## Current Status & Capabilities
 
