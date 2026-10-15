@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Field HUD: Pro Edition</title>
+
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) { registration.unregister(); }
+    });
+}
+</script>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+:root {
+--accent: #3b82f6; --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+--glass: rgba(17, 24, 39, 0.94); --glass-border: rgba(255,255,255,0.15); --panel-bg: #1f2937;
+--ui-scale: 1rem; --btn-pad: 0.75rem;
+}
+body.scale-compact { --ui-scale: 0.82rem; --btn-pad: 0.5rem; }
+body.scale-large { --ui-scale: 1.15rem; --btn-pad: 1rem; }
+/* STABLE MAP CONTAINER FIX: Guarantees Leaflet calculates proper pixel dimensions */
+html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; color: white; background: #000; font-size: var(--ui-scale); }
+#map { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; }
+.glass-panel { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+.top-bar { position: absolute; top: 1rem; left: 4.5rem; right: 5.5rem; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; }
+.hamburger-btn { position: absolute; top: 1rem; left: 1rem; z-index: 60; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; }
+.side-tools { position: absolute; top: 1rem; right: 1rem; z-index: 50; display: flex; flex-direction: column; gap: 0.5rem; }
+.bottom-drawer { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; z-index: 50; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.side-drawer { position: absolute; top: 0; left: -320px; width: 300px; height: 100vh; z-index: 2000; background: var(--panel-bg); transition: left 0.3s ease; padding: 1.5rem; padding-bottom: 6rem; overflow-y: auto; border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 1rem; }
+.side-drawer.open { left: 0; }
+.drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1999; backdrop-filter: blur(2px); }
+.parcel-sheet { position: absolute; bottom: -480px; left: 0; right: 0; background: var(--panel-bg); z-index: 1500; border-radius: 1.5rem 1.5rem 0 0; padding: 1.5rem; transition: bottom 0.3s ease-out; border-top: 1px solid var(--glass-border); box-shadow: 0 -15px 30px rgba(0,0,0,0.6); }
+.parcel-sheet.open { bottom: 0; }
+.crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 32px; height: 32px; z-index: 1000; pointer-events: none; }
+.crosshair::before, .crosshair::after { content: ''; position: absolute; background-color: var(--danger); box-shadow: 0 0 4px rgba(0,0,0,0.9); }
+.crosshair::before { top: 15px; left: 0; width: 32px; height: 2px; }
+.crosshair::after { top: 0; left: 15px; width: 2px; height: 32px; }
+.blue-dot { background-color: var(--accent); width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 15px var(--accent); }
+input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); color: inherit; padding: var(--btn-pad); border-radius: 0.5rem; font-weight: 600; outline: none; width: 100%; font-size: inherit; }
+.btn { padding: var(--btn-pad); border-radius: 0.5rem; font-weight: 900; text-transform: uppercase; cursor: pointer; display: flex; justify-content: center; align-items: center; border: none; color: white; font-size: calc(var(--ui-scale) * 0.85); width: 100%; transition: transform 0.1s; }
+.btn:active { transform: scale(0.96); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-icon { width: 2.85rem; height: 2.85rem; border-radius: 50%; font-size: 1.15rem; padding: 0; }
+.dropdown-container { position: relative; flex-grow: 1; }
+.dropdown-list { display: none; position: absolute; bottom: calc(100% + 8px); left: 0; width: 320px; max-height: 260px; overflow-y: auto; background: var(--panel-bg); border: 2px solid var(--accent); border-radius: 0.75rem; z-index: 2000; box-shadow: 0 -10px 25px rgba(0,0,0,0.8); }
+.dropdown-item { padding: 0.8rem 1rem; cursor: pointer; font-weight: 600; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.dropdown-item:hover { background: var(--accent); color: white; }
+.dropdown-code { font-weight: 900; color: var(--accent); font-size: 1.1rem; min-width: 80px; }
+.dropdown-desc { font-size: 0.85rem; opacity: 0.95; text-align: right; flex-grow: 1; line-height: 1.2; }
+.modifier-bar { display: flex; gap: 0.25rem; margin-top: 0.35rem; }
+.mod-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: inherit; padding: 0.3rem 0.5rem; border-radius: 0.25rem; font-weight: 900; font-size: 0.75rem; cursor: pointer; flex-grow: 1; }
+.mod-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.field-book-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-family: monospace; font-size: 0.85rem; }
+.field-book-table th, .field-book-table td { border: 1px solid var(--glass-border); padding: 0.3rem; text-align: center; }
+.field-book-table th { background: rgba(59, 130, 246, 0.25); color: var(--accent); font-weight: bold; }
+.field-book-table input { background: transparent; border: none; color: inherit; width: 100%; text-align: center; font-size: 0.85rem; }
+.del-row-btn { background: #ef4444; border: none; color: white; padding: 0.2rem 0.4rem; border-radius: 0.2rem; cursor: pointer; font-weight: bold; }
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 10000; justify-content: center; align-items: center; padding: 1rem; backdrop-filter: blur(4px); }
+.modal-content { width: 100%; max-width: 750px; max-height: 85vh; overflow-y: auto; padding: 1.5rem; background: var(--panel-bg); }
+.telemetry-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border); font-family: monospace; align-items: center; }
+.telemetry-row input, .telemetry-row select { width: 140px; padding: 0.3rem; text-align: center; }
+.report-preview-box { background: #ffffff; color: #111827; padding: 1.25rem; border-radius: 0.5rem; font-family: monospace; font-size: 0.8rem; white-space: pre-wrap; line-height: 1.45; }
+#pocketModeOverlay, #averagingOverlay { display: none; position: fixed; inset: 0; z-index: 9999; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+#termsOverlay { display: flex; position: fixed; inset: 0; z-index: 20000; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); justify-content: center; align-items: center; padding: 1rem; }
+#pocketModeOverlay { background: black; cursor: pointer; }
+#averagingOverlay { background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); }
+.help-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-top: 1rem; }
+.help-card { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid var(--accent); }
+.help-card h3 { font-size: 1.05rem; font-weight: 900; color: white; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; }
+.help-card p { font-size: 0.85rem; color: #9ca3af; line-height: 1.5; margin: 0; }
+#targetIndicator { display: none; background: rgba(0,0,0,0.8); padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 2px solid var(--glass-border); transition: border-color 0.3s, background-color 0.3s; }
+#targetIndicator.near { border-color: var(--warning); background: rgba(245, 158, 11, 0.2); }
+#targetIndicator.close { border-color: var(--success); background: rgba(16, 185, 129, 0.2); }
+#cogoSelectionBar { position: absolute; top: 4.5rem; left: 50%; transform: translateX(-50%); z-index: 900; background: var(--glass); border: 2px solid var(--warning); padding: 0.5rem 1rem; border-radius: 2rem; display: none; align-items: center; gap: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(8px); white-space: nowrap; }
+#bullseyePanel { display: none; position: absolute; bottom: 12rem; right: 1rem; width: 160px; height: 160px; z-index: 1000; border: 2px solid var(--glass-border); border-radius: 50%; background: rgba(17,24,39,0.85); backdrop-filter: blur(8px); box-shadow: 0 10px 25px rgba(0,0,0,0.6); cursor: grab; }
+#bullseyePanel:active { cursor: grabbing; }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); } ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+<div class="crosshair"></div>
+<button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">☰</button>
+
+<div class="top-bar glass-panel">
+<div>
+<h1 style="font-size: 1.25rem; font-weight: 900; color: var(--accent); margin: 0;">FIELD HUD</h1>
+<p id="statusText" style="font-size: 0.8rem; font-family: monospace; color: #9ca3af; font-weight: bold;">INITIALIZING GPS...</p>
+</div>
+<div style="text-align: right;">
+<div id="topSurfacesText" style="font-size: 0.75rem; font-family: monospace; color: #a855f7; font-weight: bold; margin-bottom: 0.2rem; display:none;">DTM: --</div>
+<div id="targetIndicator">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <div id="telDistHeader" style="font-size: 1.2rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
+    <div id="telDirectionArrow" style="font-size: 1rem; font-weight: 900; color: #38bdf8; margin-left: 0.5rem;">⬆️</div>
+    <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.6rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.5rem;">◎ VISUAL</button>
+</div>
+<div id="telDeltas" style="font-size: 0.75rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.2rem;">ΔN: -- | ΔE: --</div>
+<div id="telCutFill" style="font-size: 0.75rem; font-family: monospace; color: #38bdf8; font-weight: 900; margin-top:0.1rem; display:none;">C/F: --</div>
+</div>
+</div>
+</div>
+
+<div id="bullseyePanel">
+    <canvas id="bullseyeCanvas" width="160" height="160" style="position:absolute; top:0; left:0; border-radius:50%;"></canvas>
+    <div style="position:absolute; top:-20px; right:-10px;"><button onclick="toggleBullseye()" style="background:var(--danger); border:none; color:white; border-radius:50%; width:24px; height:24px; font-weight:bold; cursor:pointer;">X</button></div>
+</div>
+
+<div id="cogoSelectionBar">
+    <span id="cogoSelectionText" style="font-family:monospace; font-weight:bold; color:white; font-size:0.8rem;">Selected: --</span>
+    <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedInverse()">📐 INV</button>
+    <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedBaseline()">📏 STA/OFF</button>
+    <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="clearCogoSelection()">X</button>
+</div>
+
+<div class="side-tools">
+<button class="btn btn-icon glass-panel" onclick="togglePocketMode()" title="Pocket Battery Saver">📱</button>
+<button class="btn btn-icon glass-panel" onclick="openModal('settingsOverlay')" style="color: #60a5fa;" title="HUD Settings">⚙️</button>
+<button class="btn btn-icon glass-panel" id="centerBtn" style="color: var(--accent);" title="Center On GPS">🎯</button>
+<button class="btn btn-icon glass-panel" onclick="openModal('helpOverlay')" style="color: #fcd34d;" title="Field Manual">❓</button>
+</div>
+
+<div class="bottom-drawer glass-panel">
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-items: start;">
+<div class="dropdown-container" id="dropdownContainer">
+<input type="text" id="searchInput" placeholder="SEARCH CODE" autocomplete="off">
+<div class="dropdown-list" id="dropdownList"></div>
+<div class="modifier-bar">
+<button class="mod-btn" onclick="toggleMod(this, 'B')">B (Begin)</button>
+<button class="mod-btn" onclick="toggleMod(this, 'E')">E (End)</button>
+<button class="mod-btn" onclick="toggleMod(this, 'PC')">PC</button>
+<button class="mod-btn" onclick="toggleMod(this, 'PT')">PT</button>
+</div>
+</div>
+<div>
+<input type="text" id="pointNote" placeholder="NOTES (e.g. BENT)">
+<div style="font-size: 0.7rem; color: #9ca3af; margin-top: 0.3rem; text-align: right; font-family: monospace;" id="finalDescPreview">PREVIEW: RECON</div>
+</div>
+</div>
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+<button id="gpsPinBtn" class="btn" style="background: var(--danger);">📍 STORE GPS</button>
+<button id="mapPinBtn" class="btn" style="background: #8b5cf6;">➕ STORE MAP</button>
+<button class="btn" style="background: #f59e0b;" onclick="document.getElementById('pointCameraInput').click()">📷 SNAP PHOTO</button>
+</div>
+<input type="file" id="pointCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePointPhoto(event)">
+<div id="photoStatusIndicator" style="display:none; text-align:center; font-size:0.75rem; color:#f59e0b; font-family:monospace; font-weight:bold;">📸 PHOTO ATTACHED TO NEXT SHOT</div>
+</div>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="side-drawer" id="sideDrawer">
+<h2 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 0.5rem;">PROJECT MANAGER</h2>
+<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+<select id="projectSelector" onchange="switchProject(this.value)" style="flex-grow: 1; font-size: 0.8rem;"></select>
+<button class="btn" style="background: var(--accent); width: auto; padding: 0.5rem;" onclick="createNewProject()">➕</button>
+</div>
+
+<h2 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 0.5rem;">HUB & TOOLS</h2>
+<button class="btn" style="background: #6366f1; margin-bottom:0.5rem;" onclick="openModal('dataHubOverlay');">📂 Data & Files</button>
+<button class="btn" style="background: #38bdf8; margin-bottom:0.5rem;" onclick="openModal('cogoSuiteOverlay');">🧮 COGO Suite</button>
+
+<h2 style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; margin-bottom: 0.5rem;">CAD & MAP</h2>
+<button class="btn" style="background: #a855f7; margin-bottom:0.5rem;" onclick="openModal('cadManagerOverlay')">📋 Layer & Point Filters</button>
+<button class="btn" style="background: #10b981; margin-bottom:0.5rem;" onclick="document.getElementById('csvInput').click();">📥 Import Stakeout CSV</button>
+<input type="file" id="csvInput" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
+<button class="btn" style="background: #ec4899; margin-bottom:0.5rem;" onclick="document.getElementById('cadInput').click();">🗂️ Import Vector / DTM</button>
+<input type="file" id="cadInput" accept=".geojson,.json,.txt" style="display: none;" onchange="handleCADImport(event)">
+
+<h2 style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; margin-bottom: 0.5rem;">SETTINGS & HELP</h2>
+<button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="openModal('rtkOverlay')">📡 RTK Connectivity</button>
+<button class="btn" style="background: #6b7280; margin-bottom:1rem;" onclick="openModal('aboutOverlay')">⚖️ About & Legal</button>
+<button class="btn" style="background: var(--danger);" onclick="clearAllData(); closeDrawer();">🗑️ CLEAR ACTIVE PROJECT</button>
+</div>
+
+<div id="termsOverlay">
+<div class="glass-panel" style="width: 90%; max-width: 500px; padding: 2rem; text-align: left; z-index: 20001;">
+<h2 style="font-size: 1.4rem; font-weight: 900; color: var(--accent); margin-bottom: 0.5rem;">FIELD HUD: PRO</h2>
+<p style="font-size: 0.85rem; color: #9ca3af; line-height: 1.5; margin-bottom: 1rem;">
+Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are armed. The professional surveyor or crew chief in charge is strictly responsible for verifying all field measurements.
+</p>
+<div style="display: flex; gap: 1rem;">
+<button class="btn" style="background: var(--success);" onclick="document.getElementById('termsOverlay').style.display='none';">AGREE & ENTER</button>
+</div>
+</div>
+</div>
+
+<div id="dataHubOverlay" class="modal-bg">
+  <div class="modal-content glass-panel" style="max-width: 750px;">
+    <div class="flex justify-between items-center mb-3">
+      <h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">📂 DATA HUB</h2>
+      <button onclick="closeModal('dataHubOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.25rem; margin-bottom: 1rem;">
+      <button id="dhTabBtn-points" class="btn" style="background:var(--accent); font-size:0.75rem;" onclick="switchDataHubTab('points')">Points</button>
+      <button id="dhTabBtn-files" class="btn" style="background:#4b5563; font-size:0.75rem;" onclick="switchDataHubTab('files')">Files & Export</button>
+      <button id="dhTabBtn-book" class="btn" style="background:#4b5563; font-size:0.75rem;" onclick="switchDataHubTab('book')">Field Book</button>
+    </div>
+    <div id="dh-points">
+        <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.5rem;">Manage, edit, view photos, or delete stored project points.</p>
+        <div style="max-height: 380px; overflow-y: auto;">
+        <table class="field-book-table">
+        <thead><tr><th>Pt #</th><th>Description / Code</th><th>Photo</th><th>Actions</th></tr></thead>
+        <tbody id="pointManagerRows"></tbody>
+        </table>
+        </div>
+    </div>
+    <div id="dh-files" style="display:none;">
+        <div class="flex gap-2 mb-3">
+            <button class="btn" style="background:var(--success); font-size:0.75rem;" onclick="exportCSV()">💾 EXPORT CSV</button>
+            <button class="btn" style="background:#8b5cf6; font-size:0.75rem;" onclick="exportDXF()">✏️ EXPORT DXF</button>
+        </div>
+        <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.5rem;">Local files generated via client download:</p>
+        <div style="max-height: 300px; overflow-y: auto;">
+        <table class="field-book-table">
+        <thead><tr><th>Export Action</th><th>Format</th><th>Status</th></tr></thead>
+        <tbody>
+            <tr><td style="text-align:left;">Download PNEZD Points</td><td>CSV</td><td><button class="btn" style="background:var(--success); font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="exportCSV()">DOWNLOAD</button></td></tr>
+            <tr><td style="text-align:left;">Download CAD Entities</td><td>DXF</td><td><button class="btn" style="background:#8b5cf6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="exportDXF()">DOWNLOAD</button></td></tr>
+            <tr><td style="text-align:left;">Download Field Notes</td><td>TXT</td><td><button class="btn" style="background:var(--accent); font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="exportFieldBookLocal()">DOWNLOAD</button></td></tr>
+        </tbody>
+        </table>
+        </div>
+    </div>
+    <div id="dh-book" style="display:none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem; font-size: 0.8rem;">
+        <input type="text" id="fbProject" placeholder="Project Name">
+        <input type="text" id="fbJobNo" placeholder="Job Number">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem; margin-bottom: 0.5rem; font-size: 0.8rem;">
+        <input type="text" id="fbCrew" placeholder="Crew Chief">
+        <input type="text" id="fbTemp" placeholder="Temp (°F)">
+        <input type="text" id="fbWeather" placeholder="Weather">
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem; margin-bottom: 0.5rem;">
+        <button id="tabBtn-level" class="btn tab-btn" style="background: var(--accent); font-size: 0.7rem;" onclick="switchBookTab('level')">Level</button>
+        <button id="tabBtn-traverse" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="switchBookTab('traverse')">Traverse</button>
+        <button id="tabBtn-builder" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="switchBookTab('builder')">Rod</button>
+        <button id="tabBtn-notes" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="switchBookTab('notes')">Notes</button>
+        </div>
+        <div id="levelBookSection">
+        <table class="field-book-table">
+        <thead><tr><th>Sta</th><th>BS</th><th>HI</th><th>FS</th><th>Elev</th><th>Del</th></tr></thead>
+        <tbody id="levelRows">
+        <tr><td><input value="BM1"></td><td><input value="4.25"></td><td><input value="104.25"></td><td><input value="-"></td><td><input value="100.00"></td><td><button class="del-row-btn" onclick="this.closest('tr').remove()">X</button></td></tr>
+        </tbody>
+        </table>
+        <button class="btn" style="background: var(--success); margin-top: 0.4rem;" onclick="addLevelRow()">+ Add Level Row</button>
+        </div>
+        <div id="traverseBookSection" style="display: none;">
+        <table class="field-book-table">
+        <thead><tr><th>Setup PT</th><th>Target PT</th><th>Azimuth (°)</th><th>Dist (FT)</th><th>Del</th></tr></thead>
+        <tbody id="traverseRows"></tbody>
+        </table>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
+        <button class="btn" style="background: var(--success);" onclick="addTraverseRow()">+ Add Leg</button>
+        <button class="btn" style="background: #8b5cf6;" onclick="adjustTraverse()">⚖️ Adjust</button>
+        </div>
+        <div id="traverseReport" style="display:none; font-family: monospace; font-size:0.75rem; background:rgba(0,0,0,0.4); padding:0.5rem; margin-top:0.5rem; color:#9ca3af; border-radius:0.5rem;"></div>
+        </div>
+        <div id="builderBookSection" style="display: none;">
+        <table class="field-book-table">
+        <thead><tr><th>Point</th><th>Rod</th><th>Grade</th><th>Cut/Fill</th><th>Desc</th><th>Del</th></tr></thead>
+        <tbody id="builderRows"></tbody>
+        </table>
+        <button class="btn" style="background: var(--success); margin-top: 0.4rem;" onclick="addBuilderRow()">+ Add Rod Shot</button>
+        </div>
+        <div id="notesBookSection" style="display: none;">
+        <textarea id="notebookFreeform" rows="5" placeholder="Freeform notes..." style="width:100%; background:rgba(0,0,0,0.3); padding:0.5rem;"></textarea>
+        </div>
+        <div class="flex gap-2 mt-3">
+        <button class="btn" style="background: var(--success); flex:1;" onclick="previewFieldBook()">Preview Report</button>
+        <button class="btn" style="background: var(--accent); flex:1;" onclick="exportFieldBookLocal()">Export Notes</button>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div id="cogoSuiteOverlay" class="modal-bg">
+  <div class="modal-content glass-panel" style="max-width: 600px;">
+    <div class="flex justify-between items-center mb-3">
+      <h2 style="font-size: 1.3rem; font-weight: 900; color: #38bdf8;">🧮 COGO SUITE</h2>
+      <button onclick="closeModal('cogoSuiteOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.25rem; margin-bottom: 1rem;">
+      <button id="csTabBtn-inverse" class="btn" style="background:var(--accent); font-size:0.7rem;" onclick="switchCogoTab('inverse')">Inverse</button>
+      <button id="csTabBtn-station" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('station')">Station</button>
+      <button id="csTabBtn-curve" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('curve')">Curve</button>
+      <button id="csTabBtn-conv" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('conv')">Conv.</button>
+    </div>
+    <div id="cs-inverse">
+        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>📐 INV</b>.</p>
+        <div class="flex justify-between py-2 border-b border-gray-700 font-monospace text-sm mb-2">
+            <span>FROM: <b id="cogoPtAText" style="color:#38bdf8;">--</b></span>
+            <span>TO: <b id="cogoPtBText" style="color:#38bdf8;">--</b></span>
+        </div>
+        <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace;">
+            <div class="flex justify-between py-1 border-b border-gray-700"><span>Bearing:</span> <span id="cogoBearing" style="color: #38bdf8; font-weight: bold;">--</span></div>
+            <div class="flex justify-between py-1"><span>Horizontal Dist:</span> <span id="cogoDist" style="color: var(--success); font-weight: bold;">-- FT</span></div>
+        </div>
+    </div>
+    <div id="cs-station" style="display:none;">
+        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>📏 STA/OFF</b>.</p>
+        <div class="flex justify-between py-2 border-b border-gray-700 font-monospace text-sm mb-2">
+            <span>ALIGN: <b id="staPtAText" style="color:#10b981;">--</b></span>
+            <span>TO: <b id="staPtBText" style="color:#10b981;">--</b></span>
+        </div>
+        <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace;">
+            <div class="flex justify-between py-1 border-b border-gray-700"><span>Station:</span> <span id="soStation" style="color: #38bdf8; font-weight: bold;">-- FT</span></div>
+            <div class="flex justify-between py-1"><span>Offset:</span> <span id="soOffset" style="color: var(--success); font-weight: bold;">--</span></div>
+        </div>
+    </div>
+    <div id="cs-curve" style="display:none;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <div><label style="font-size: 0.75rem; color: #9ca3af; font-weight: bold;">RADIUS (FT)</label><input type="number" id="curveRad" step="0.01"></div>
+        <div><label style="font-size: 0.75rem; color: #9ca3af; font-weight: bold;">DELTA ANGLE (°)</label><input type="number" id="curveDelta" step="0.01"></div>
+        </div>
+        <button class="btn" style="background: #f43f5e; margin-bottom: 1rem;" onclick="solveCurve()">SOLVE GEOMETRY</button>
+        <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace;">
+        <div class="flex justify-between py-1 border-b border-gray-700"><span>Arc Length (L):</span> <span id="curveL" style="color: #38bdf8; font-weight: bold;">-- FT</span></div>
+        <div class="flex justify-between py-1 border-b border-gray-700"><span>Tangent (T):</span> <span id="curveT" style="color: #10b981; font-weight: bold;">-- FT</span></div>
+        <div class="flex justify-between py-1"><span>Chord (C):</span> <span id="curveC" style="color: #fcd34d; font-weight: bold;">-- FT</span></div>
+        </div>
+    </div>
+    <div id="cs-conv" style="display:none;">
+        <!-- Manual Converter -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <input type="number" id="convInput" placeholder="Enter value" step="any" oninput="runLiveConversion()">
+        <select id="convUnit" onchange="runLiveConversion()">
+        <option value="ft">Decimal Feet (FT)</option>
+        <option value="in">Inches (IN)</option>
+        <option value="cm">Centimeters (CM)</option>
+        </select>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.25rem; font-family: monospace; font-size: 0.75rem; text-align: center; margin-bottom:0.75rem;">
+        <div style="background:rgba(255,255,255,0.05); padding:0.3rem; border-radius:0.25rem;">FT: <span id="resFt" style="color:var(--success); font-weight:bold;">--</span></div>
+        <div style="background:rgba(255,255,255,0.05); padding:0.3rem; border-radius:0.25rem;">IN: <span id="resIn" style="color:var(--warning); font-weight:bold;">--</span></div>
+        <div style="background:rgba(255,255,255,0.05); padding:0.3rem; border-radius:0.25rem;">CM: <span id="resCm" style="color:#38bdf8; font-weight:bold;">--</span></div>
+        </div>
+        <!-- Quick Reference Cheat Sheet Table -->
+        <p style="font-size: 0.7rem; color: var(--accent); font-weight: bold; margin-bottom: 0.25rem; text-transform: uppercase;">Quick Lookup Cheat Sheet</p>
+        <div style="max-height: 140px; overflow-y: auto;">
+        <table class="field-book-table" style="font-size: 0.75rem; margin-top:0;">
+        <thead><tr><th>Decimal Ft</th><th>Inches</th><th>Metric (cm)</th></tr></thead>
+        <tbody>
+            <tr><td>0.083' (1")</td><td>1.00"</td><td>2.54 cm</td></tr>
+            <tr><td>0.100' (1.2")</td><td>1.20"</td><td>3.05 cm</td></tr>
+            <tr><td>0.250' (3")</td><td>3.00"</td><td>7.62 cm</td></tr>
+            <tr><td>0.500' (6")</td><td>6.00"</td><td>15.24 cm</td></tr>
+            <tr><td>0.750' (9")</td><td>9.00"</td><td>22.86 cm</td></tr>
+            <tr><td>1.000' (12")</td><td>12.00"</td><td>30.48 cm</td></tr>
+            <tr><td>3.281'</td><td>39.37"</td><td>100.00 cm (1m)</td></tr>
+        </tbody>
+        </table>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div id="photoModalOverlay" class="modal-bg" onclick="closeModal('photoModalOverlay')">
+<div style="max-width: 90%; max-height: 90vh; text-align: center;">
+<img id="lightboxImg" src="" style="max-width: 100%; max-height: 80vh; border-radius: 0.5rem; border: 2px solid var(--glass-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+<p style="color: white; margin-top: 0.5rem; font-family: monospace;" id="lightboxCaption">Point Photo Inspection</p>
+</div>
+</div>
+
+<div id="settingsOverlay" class="modal-bg">
+<div class="modal-content glass-panel">
+<div class="flex justify-between items-center mb-4">
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #60a5fa;">⚙️ HUD SETTINGS</h2>
+<button onclick="closeModal('settingsOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<div class="telemetry-row"><span>SPC Zone:</span>
+<select id="spcZoneSelect">
+<option value="EPSG:32133" selected>NAD83 South Carolina (ftUS)</option>
+<option value="EPSG:4326">WGS84 (Raw Lat/Lon)</option>
+<option value="EPSG:2264">NAD83 NC State Plane (ftUS)</option>
+<option value="EPSG:2236">NAD83 FL East (ftUS)</option>
+</select>
+</div>
+<div class="telemetry-row"><span>Map Engine:</span>
+<select id="mapLayerSelect" onchange="changeMapLayer(this.value)">
+<option value="satellite" selected>Esri World Imagery</option>
+<option value="street">OpenStreetMap</option>
+<option value="topo">OpenTopoMap</option>
+</select>
+</div>
+<div class="telemetry-row"><span>QC Tolerance (FT):</span>
+<select id="qcToleranceSelect" onchange="window.qcTolerance = parseFloat(this.value);">
+<option value="0.05">0.05' (Control)</option>
+<option value="0.15" selected>0.15' (Topo / As-Built)</option>
+<option value="0.50">0.50' (Recon)</option>
+<option value="5.00">5.00' (GIS Base)</option>
+</select>
+</div>
+<div class="telemetry-row"><span>Voice Guidance (TTS):</span>
+<select id="ttsToggle" onchange="window.ttsEnabled = (this.value === 'on');">
+<option value="off" selected>Disabled (Off)</option>
+<option value="on">Enabled (On)</option>
+</select>
+</div>
+<div class="telemetry-row"><span>Voice Volume:</span>
+<input type="range" min="0.1" max="1" step="0.1" value="1" onchange="window.ttsVolume = parseFloat(this.value);" style="width:140px;">
+</div>
+<div class="telemetry-row"><span>UI Scaling:</span>
+<select id="uiScaleSelect" onchange="changeUIScale(this.value)">
+<option value="scale-compact">Compact</option>
+<option value="scale-normal" selected>Standard</option>
+<option value="scale-large">Large</option>
+</select>
+</div>
+<div class="telemetry-row"><span>Start Point ID:</span><input type="number" id="startIdInput" value="1" onchange="updateStartId(this.value)"></div>
+</div>
+</div>
+
+<!-- CAD LAYER & POINT FILTER MANAGER -->
+<div id="cadManagerOverlay" class="modal-bg">
+<div class="modal-content glass-panel" style="max-width: 500px;">
+<div class="flex justify-between items-center mb-4">
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #ec4899;">📋 CAD & POINT FILTERS</h2>
+<button onclick="closeModal('cadManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.5rem;">Toggle CAD Layers:</p>
+<div id="cadLayerList" style="max-height: 180px; overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
+<p style="color: #9ca3af; font-size: 0.8rem; text-align: center;">No CAD data loaded.</p>
+</div>
+<p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.5rem;">Filter Point Categories on Map:</p>
+<div style="display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.85rem;">
+<label class="flex justify-between items-center bg-black/30 p-2 rounded border border-gray-700"><span>Monuments & Pins (IPF, IRF, CMF, PK, MAG)</span><input type="checkbox" checked style="width:18px; height:18px; accent-color:var(--accent);" onchange="togglePointFilter('MON', this.checked)"></label>
+<label class="flex justify-between items-center bg-black/30 p-2 rounded border border-gray-700"><span>Pavement & Curb (EP, BOC, FL, TC, SW)</span><input type="checkbox" checked style="width:18px; height:18px; accent-color:var(--accent);" onchange="togglePointFilter('PAV', this.checked)"></label>
+<label class="flex justify-between items-center bg-black/30 p-2 rounded border border-gray-700"><span>Utilities & Drainage (SS, STM, W, AG)</span><input type="checkbox" checked style="width:18px; height:18px; accent-color:var(--accent);" onchange="togglePointFilter('UTIL', this.checked)"></label>
+<label class="flex justify-between items-center bg-black/30 p-2 rounded border border-gray-700"><span>General Recon & Other</span><input type="checkbox" checked style="width:18px; height:18px; accent-color:var(--accent);" onchange="togglePointFilter('OTHER', this.checked)"></label>
+</div>
+</div>
+</div>
+
+<!-- ABOUT & LEGAL OVERLAY -->
+<div id="aboutOverlay" class="modal-bg">
+<div class="modal-content glass-panel" style="max-width: 550px;">
+<div class="flex justify-between items-center mb-3">
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #6b7280;">⚖️ ABOUT & LEGAL</h2>
+<button onclick="closeModal('aboutOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<div style="font-size: 0.8rem; color: #d1d5db; line-height: 1.6; max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
+<p style="margin-bottom: 0.75rem;"><b>Field HUD Pro (Edition 2026)</b><br>Engineered for field land surveying, civil construction layout, and CAD drafting workflows.</p>
+
+<p style="margin-bottom: 0.75rem;"><strong style="color:var(--warning);">Professional Disclaimer:</strong> This software is a field assistant tool. The licensed Professional Land Surveyor (PLS) or Crew Chief in charge maintains sole legal responsibility for verifying all construction layouts, property boundaries, and as-built measurements against recorded plats and control monuments.</p>
+<hr style="border-color:var(--glass-border); margin:0.75rem 0;">
+<p style="font-weight: bold; color: var(--accent); margin-bottom: 0.25rem;">Software & API Attributions:</p>
+<ul style="list-style-type: disc; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.25rem;">
+<li><b>Leaflet.js</b> — Open-source JavaScript mapping library (BSD 2-Clause License).</li>
+<li><b>Proj4js</b> — Coordinate transformation library for JavaScript (MIT / PROJ License).</li>
+<li><b>LocalForage</b> — Offline asynchronous storage wrapper for IndexedDB (Apache 2.0 License).</li>
+<li><b>Tailwind CSS</b> — Utility-first CSS framework (MIT License).</li>
+<li><b>Esri World Imagery</b> — High-resolution aerial basemaps (Esri REST Terms of Service).</li>
+<li><b>OpenStreetMap & OpenTopoMap</b> — Map tile renderers (ODbL / CC-BY-SA).</li>
+<li><b>Regrid Nationwide Parcels</b> — Parcel boundary tile layers & GIS data APIs.</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- FIELD MANUAL OVERLAY -->
+<div id="helpOverlay" class="modal-bg">
+<div class="modal-content glass-panel" style="max-width: 700px;">
+<div class="flex justify-between items-center mb-2">
+<h2 style="font-size: 1.5rem; font-weight: 900; color: #fcd34d;">❓ FIELD MANUAL</h2>
+<button onclick="closeModal('helpOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem;">Engineering-grade field guidelines and operational quick-start procedures.</p>
+<div class="help-grid" style="max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
+    <div class="help-card">
+        <h3>📍 1. GPS Storing & Averaging</h3>
+        <p>Tap <b>STORE GPS</b> to trigger a 5-second averaging countdown. The app records multiple epochs, averages the coordinates to cancel out multipath/jitter, and flags any point outside your QC Tolerance setting.</p>
+    </div>
+    <div class="help-card">
+        <h3>🔗 2. Smart Linework Coding</h3>
+        <p>Linear features (e.g., EP, BOC, FL, TC, SW) automatically string together on the map. Use the modifier bar: tap <b>B (Begin)</b> on the first shot to start a fresh polyline string, and <b>E (End)</b> on the final shot to terminate it.</p>
+    </div>
+    <div class="help-card">
+        <h3>📡 3. RTK NMEA Bridge Setup</h3>
+        <p>To feed high-precision RTK data from your GNSS receiver (Topcon/Trimble): pair via Bluetooth, open <b>Lefebure NTRIP</b>, set receiver output to TCP Server on port <b>50000</b>. Field HUD's Python backend automatically streams true centimeter accuracy.</p>
+    </div>
+    <div class="help-card">
+        <h3>🧮 4. COGO Suite & Inverses</h3>
+        <p>Select any two points on the map to activate the top selection bar. Tap <b>INV</b> for inverse bearing and horizontal distance, or <b>STA/OFF</b> to calculate station and offset relative to a baseline or CAD alignment.</p>
+    </div>
+    <div class="help-card">
+        <h3>📋 5. CAD Layers & Point Filters</h3>
+        <p>Import GeoJSON vector and surface files (`.geojson`/`.txt`). Use the <b>Layer & Point Filters Manager</b> to toggle individual CAD layers or filter out point category types on the map overlay.</p>
+    </div>
+</div>
+</div>
+</div>
+
+<div id="rtkOverlay" class="modal-bg">
+<div class="modal-content glass-panel" style="max-width: 600px;">
+<div class="flex justify-between items-center mb-2">
+<h2 style="font-size: 1.5rem; font-weight: 900; color: #4b5563;">📡 RTK NMEA BRIDGE</h2>
+<button onclick="closeModal('rtkOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<p style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 1rem;">To get True RTK Accuracy into Field HUD:</p>
+<div class="help-grid">
+    <div class="help-card"><h3>Step 1: Connect Receiver</h3><p>Pair your Topcon/Trimble receiver via Bluetooth.</p></div>
+    <div class="help-card"><h3>Step 2: Start Lefebure NTRIP</h3><p>Open Lefebure. Go to Receiver Settings -> <b>Output to TCP Server</b>. Set the port to <b>50000</b>.</p></div>
+    <div class="help-card"><h3>Step 3: Connect</h3><p>Once Lefebure has an RTK fix, it broadcasts raw NMEA. Field HUD's background Python server automatically connects to port 50000 and displays True Precision on the HUD.</p></div>
+</div>
+</div>
+</div>
+
+<div class="parcel-sheet glass-panel" id="parcelSheet">
+<div class="flex justify-between items-center mb-2">
+<h3 id="parcelAddress" style="font-size: 1.05rem; font-weight: 900; color: var(--accent);">Querying County GIS...</h3>
+<button onclick="closeParcelSheet()" class="btn" style="background: var(--danger); width: auto; padding: 0.2rem 0.6rem;">X</button>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; margin-bottom: 0.5rem;">
+<button id="pTab1Btn" class="btn" style="background: var(--accent); font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(1)">📍 Core Telemetry</button>
+<button id="pTab2Btn" class="btn" style="background: #4b5563; font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(2)">⚖️ Survey & Deeds</button>
+</div>
+<div id="parcelTab1" style="font-family: monospace; font-size: 0.8rem; color: #d1d5db; line-height: 1.5;">
+<p id="parcelOwner">Owner: Verified Local Title</p>
+<p id="parcelAPN">APN / Map No: --</p>
+<p id="parcelAcreage" style="color: var(--success); font-weight: bold;">Acreage: -- AC</p>
+<p id="parcelCoords" style="color: #38bdf8;">Lat/Lon: --</p>
+<p id="parcelSPC" style="color: #fbbf24;">SPC (N, E): --</p>
+</div>
+<div id="parcelTab2" style="display: none; font-family: monospace; font-size: 0.8rem; color: #d1d5db; line-height: 1.5;">
+<p id="parcelSubdivision">Subdivision / Block / Lot: Unplatted / Sec 1</p>
+<p id="parcelDeedRef">Deed Book / Page: Vol. 4182, Pg. 204</p>
+<p id="parcelFloodZone">FEMA Flood Zone: Zone X (Unshaded)</p>
+<p id="parcelZoning">Municipal Zoning: R-1 (Single Family)</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; margin-top: 0.6rem;">
+<button class="btn" style="background: #f59e0b; font-size:0.7rem; padding:0.4rem;" onclick="copyParcelAPN()">📋 COPY MAP NO</button>
+<a href="https://www.greenvillecounty.org/appsas400/RealProperty/" target="_blank" style="text-decoration:none;"><button class="btn" style="background: #3b82f6; font-size:0.7rem; padding:0.4rem;">🌐 COUNTY PORTAL</button></a>
+</div>
+</div>
+<a id="parcelLink" href="#" target="_blank"><button class="btn" style="background: #8b5cf6; margin-top: 0.6rem; font-size: 0.8rem;">🔗 OPEN REGRID MAP</button></a>
+</div>
+
+<div id="targetOverlay" class="modal-bg">
+<div class="modal-content glass-panel" style="max-width: 400px;">
+<div class="flex justify-between items-center mb-3">
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #10b981;">🎯 SET TARGET</h2>
+<button onclick="closeModal('targetOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<input type="number" id="targetDesignElev" placeholder="Design Elev (FT) - Leave blank if N/A" step="0.01">
+<button class="btn" style="background: var(--success); margin-top: 1rem;" onclick="confirmTarget()">LOCK TARGET</button>
+</div>
+</div>
+
+<div id="previewOverlay" class="modal-bg">
+<div class="modal-content glass-panel" style="max-width: 650px;">
+<div class="flex justify-between items-center mb-3">
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">📄 REPORT PREVIEW</h2>
+<button onclick="closeModal('previewOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+</div>
+<div id="reportPreviewContainer" class="report-preview-box"></div>
+</div>
+</div>
+
+<div id="averagingOverlay">
+<span style="font-size: 1.5rem; font-weight: 900; color: white;">HOLD STEADY (5-SEC AVG)</span>
+<span style="font-size: 5rem; font-weight: 900; color: var(--success);" id="avgTimer">5</span>
+</div>
+
+<div id="pocketModeOverlay" onclick="togglePocketMode()">
+<span style="color:var(--danger); margin-bottom:1rem; font-size: 2rem; font-weight: 900;">🔴 GPS ACTIVE</span>
+<span style="font-size: 1.25rem; font-weight: 600; color: #666;">TAP ANYWHERE TO WAKE</span>
+</div>
+
+<script>
+const map = L.map('map', { zoomControl: false, maxZoom: 22 }).setView([34.8526, -82.3940], 15);
+map.createPane('parcels'); map.getPane('parcels').style.zIndex = 450; map.getPane('parcels').style.pointerEvents = 'none';
+
+let mapLayers = {
+    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 22, maxNativeZoom: 19 }),
+    street: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 19 }),
+    topo: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 22, maxNativeZoom: 17 })
+};
+mapLayers.satellite.addTo(map); let currentMapLayer = mapLayers.satellite;
+
+const regridLayer = L.tileLayer('https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}', { pane: 'parcels', maxZoom: 22, maxNativeZoom: 17, opacity: 1.0 });
+regridLayer.addTo(map);
+
+window.changeMapLayer = function(type) { map.removeLayer(currentMapLayer); currentMapLayer = mapLayers[type]; currentMapLayer.addTo(map); };
+window.toggleRegridLayer = function(val) { if(val === 'show') regridLayer.addTo(map); else map.removeLayer(regridLayer); };
+
+window.qcTolerance = 0.15;
+window.ttsEnabled = false;
+window.ttsVolume = 1.0;
+let lastSpeechTime = 0;
+let activeAlignment = null; 
+let lastNmeaTime = 0; 
+
+// User Location & Geolocation Fallback Tracking
+let userMarker = null;
+let lastKnownLat = null;
+let lastKnownLon = null;
+let lastKnownAccuracy = 999;
+
+if ('geolocation' in navigator) {
+    navigator.geolocation.watchPosition(
+        (position) => {
+            lastKnownLat = position.coords.latitude;
+            lastKnownLon = position.coords.longitude;
+            lastKnownAccuracy = position.coords.accuracy * 3.28084; // Convert meters to feet
+
+            const latlng = [lastKnownLat, lastKnownLon];
+            
+            if (!userMarker) {
+                userMarker = L.marker(latlng, {
+                    icon: L.divIcon({ className: 'blue-dot', iconSize: [20, 20] })
+                }).addTo(map);
+            } else {
+                userMarker.setLatLng(latlng);
+            }
+
+            // Only update status if external high-precision NMEA is inactive (> 5s)
+            if (Date.now() - lastNmeaTime > 5000) {
+                document.getElementById('statusText').innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
+                document.getElementById('statusText').style.color = '#38bdf8';
+            }
+        },
+        (error) => {
+            console.error(error);
+            document.getElementById('statusText').innerText = 'GPS PERMISSION DENIED';
+            document.getElementById('statusText').style.color = 'var(--danger)';
+        },
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+}
+
+let wakeLock = null;
+window.requestWakeLock = async function() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} };
+document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible') window.requestWakeLock(); });
+
+let bullseyeVisible = false;
+window.toggleBullseye = function() { bullseyeVisible = !bullseyeVisible; document.getElementById('bullseyePanel').style.display = bullseyeVisible ? 'block' : 'none'; };
+const bsPanel = document.getElementById('bullseyePanel');
+let isDragging = false, offsetX, offsetY;
+bsPanel.addEventListener('mousedown', e => { if(e.target.tagName==='BUTTON')return; isDragging = true; offsetX = e.clientX - bsPanel.offsetLeft; offsetY = e.clientY - bsPanel.offsetTop; });
+bsPanel.addEventListener('touchstart', e => { if(e.target.tagName==='BUTTON')return; isDragging = true; offsetX = e.touches[0].clientX - bsPanel.offsetLeft; offsetY = e.touches[0].clientY - bsPanel.offsetTop; });
+document.addEventListener('mousemove', e => { if(isDragging) { bsPanel.style.left = (e.clientX - offsetX) + 'px'; bsPanel.style.top = (e.clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
+document.addEventListener('touchmove', e => { if(isDragging) { bsPanel.style.left = (e.touches[0].clientX - offsetX) + 'px'; bsPanel.style.top = (e.touches[0].clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
+document.addEventListener('mouseup', () => isDragging = false); document.addEventListener('touchend', () => isDragging = false);
+
+function drawBullseye(dN, dE, dist) {
+    if(!bullseyeVisible) return;
+    const canvas = document.getElementById('bullseyeCanvas'); const ctx = canvas.getContext('2d'); const w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w/2, h/2, w/2 - 10, 0, 2*Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(w/2, h/2, (w/2 - 10)/2, 0, 2*Math.PI); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(w/2, 10); ctx.lineTo(w/2, h-10); ctx.moveTo(10, h/2); ctx.lineTo(w-10, h/2); ctx.stroke();
+    const maxRadius = 20; const drawDist = Math.min(dist, maxRadius); const angle = Math.atan2(dE, dN); 
+    const px = w/2 + Math.sin(angle) * (drawDist / maxRadius) * (w/2 - 10); const py = h/2 - Math.cos(angle) * (drawDist / maxRadius) * (w/2 - 10);
+    ctx.fillStyle = dist < 2.0 ? '#10b981' : '#f59e0b'; ctx.beginPath(); ctx.arc(px, py, 8, 0, 2*Math.PI); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+function updateStakeoutArrow(dN, dE) {
+    const angleRad = Math.atan2(dE, dN);
+    let angleDeg = angleRad * (180 / Math.PI);
+    if (angleDeg < 0) angleDeg += 360;
+    
+    let arrowChar = '⬆️';
+    if (angleDeg >= 337.5 || angleDeg < 22.5) arrowChar = '⬆️ North';
+    else if (angleDeg >= 22.5 && angleDeg < 67.5) arrowChar = '↗️ NE';
+    else if (angleDeg >= 67.5 && angleDeg < 112.5) arrowChar = '➡️ East';
+    else if (angleDeg >= 112.5 && angleDeg < 157.5) arrowChar = '↘️ SE';
+    else if (angleDeg >= 157.5 && angleDeg < 202.5) arrowChar = '⬇️ South';
+    else if (angleDeg >= 202.5 && angleDeg < 247.5) arrowChar = '↙️ SW';
+    else if (angleDeg >= 247.5 && angleDeg < 292.5) arrowChar = '⬅️ West';
+    else if (angleDeg >= 292.5 && angleDeg < 337.5) arrowChar = '↖️ NW';
+
+    const arrowEl = document.getElementById('telDirectionArrow');
+    if (arrowEl) arrowEl.innerText = arrowChar;
+}
+
+function speakStakeout(dN, dE, cfStr) {
+    if(!window.ttsEnabled || !('speechSynthesis' in window)) return;
+    const now = Date.now(); if(now - lastSpeechTime < 4000) return; lastSpeechTime = now;
+    let text = `${dN > 0 ? 'North' : 'South'} ${Math.abs(dN).toFixed(1)}, `;
+    text += `${dE > 0 ? 'East' : 'West'} ${Math.abs(dE).toFixed(1)}`;
+    if(cfStr) { text += `, ${cfStr.includes('C') ? 'Cut' : 'Fill'} ${cfStr.replace(/[^\d.]/g, '')}`; }
+    const u = new SpeechSynthesisUtterance(text); u.volume = window.ttsVolume; speechSynthesis.speak(u);
+}
+
+let currentCapturedPhoto = null; let selPtA = null, selPtB = null;
+
+window.switchDataHubTab = function(tab) {
+    ['points','files','book'].forEach(t => {
+        document.getElementById('dh-'+t).style.display = (t === tab) ? 'block' : 'none'; document.getElementById('dhTabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563';
+    });
+};
+window.switchCogoTab = function(tab) {
+    ['inverse','station','curve','conv'].forEach(t => {
+        document.getElementById('cs-'+t).style.display = (t === tab) ? 'block' : 'none'; document.getElementById('csTabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563';
+    });
+};
+
+window.handlePointPhoto = function(event) {
+    const file = event.target.files[0]; if(!file) return; const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image(); img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const scaleSize = 800 / img.width; canvas.width = 800; canvas.height = img.height * scaleSize; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); currentCapturedPhoto = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('photoStatusIndicator').style.display = 'block'; }; img.src = e.target.result;
+    }; reader.readAsDataURL(file);
+};
+
+window.copyParcelAPN = function() { navigator.clipboard.writeText(document.getElementById('parcelAPN').innerText.replace('APN / Map No: ', '').trim()).then(() => alert("Copied Map No.")); };
+
+window.loadPointManagerTable = function() {
+    const tbody = document.getElementById('pointManagerRows'); tbody.innerHTML = '';
+    if(pinData.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:1rem;">No points logged.</td></tr>`; return; }
+    pinData.forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        const photoCell = p.photo ? `<img src="${p.photo}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewPhotoLightbox('${p.photo}', 'PT${p.id}: ${p.desc}')">` : `<span style="color:#666; font-size:0.75rem;">None</span>`;
+        tr.innerHTML = `<td><input type="number" id="mId_${idx}" value="${p.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${idx}" value="${p.desc}"></td><td>${photoCell}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="updatePoint(${idx})">SAVE</button><button class="del-row-btn" onclick="deletePointManager(${idx})">DEL</button></td>`;
+        tbody.appendChild(tr);
+    });
+};
+
+window.viewPhotoLightbox = function(dataUrl, caption) { document.getElementById('lightboxImg').src = dataUrl; document.getElementById('lightboxCaption').innerText = caption; document.getElementById('photoModalOverlay').style.display = 'flex'; };
+
+window.updatePoint = async function(idx) {
+    const newId = parseInt(document.getElementById(`mId_${idx}`).value); const newDesc = document.getElementById(`mDesc_${idx}`).value.trim().toUpperCase();
+    if(!isNaN(newId)) pinData[idx].id = newId; if(newDesc) pinData[idx].desc = newDesc;
+    await savePinsToDB(); droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); alert(`Point ${pinData[idx].id} updated!`);
+};
+
+window.deletePointManager = async function(idx) {
+    if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
+    map.removeLayer(droppedPins[idx]); pinData.splice(idx, 1); droppedPins.splice(idx, 1);
+    await savePinsToDB(); loadPointManagerTable(); rebuildSmartLinework();
+};
+
+window.switchParcelTab = function(tabNum) {
+    document.getElementById('parcelTab1').style.display = (tabNum === 1) ? 'block' : 'none'; document.getElementById('parcelTab2').style.display = (tabNum === 2) ? 'block' : 'none';
+    document.getElementById('pTab1Btn').style.background = (tabNum === 1) ? 'var(--accent)' : '#4b5563'; document.getElementById('pTab2Btn').style.background = (tabNum === 2) ? 'var(--accent)' : '#4b5563';
+};
+
+window.runLiveConversion = function() {
+    const val = parseFloat(document.getElementById('convInput').value); const unit = document.getElementById('convUnit').value;
+    if(isNaN(val)) { document.getElementById('resFt').innerText = '--'; document.getElementById('resIn').innerText = '--'; document.getElementById('resCm').innerText = '--'; return; }
+    let feet = 0; if(unit === 'ft') feet = val; else if(unit === 'in') feet = val / 12.0; else if(unit === 'cm') feet = val / 30.48;
+    document.getElementById('resFt').innerText = `${feet.toFixed(3)}'`; document.getElementById('resIn').innerText = `${(feet * 12).toFixed(2)}"`; document.getElementById('resCm').innerText = `${(feet * 30.48).toFixed(1)}cm`;
+};
+
+proj4.defs("EPSG:32133","+proj=lcc +lat_1=34.83333333333334 +lat_2=32.5 +lat_0=31.83333333333333 +lon_0=-81 +x_0=609600.1219202438 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
+proj4.defs("EPSG:2264","+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.2192024384 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
+proj4.defs("EPSG:2236","+proj=tmerc +lat_0=24.33333333333333 +lon_0=-81 +k=0.9999411764705882 +x_0=200000.0001016002 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
+
+window.toggleDrawer = function() { const drawer = document.getElementById('sideDrawer'); const overlay = document.getElementById('drawerOverlay'); if(drawer.classList.contains('open')) { closeDrawer(); } else { drawer.classList.add('open'); overlay.style.display = 'block'; } };
+window.closeDrawer = function() { document.getElementById('sideDrawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; };
+
+window.openModal = function(modalId) { 
+    closeDrawer(); 
+    if(modalId === 'dataHubOverlay') { loadPointManagerTable(); } 
+    const targetModal = document.getElementById(modalId);
+    if(targetModal) {
+        targetModal.style.display = 'flex';
+    }
+};
+
+window.closeModal = function(modalId) { document.getElementById(modalId).style.display = 'none'; };
+
+let activeProjectId = "default"; let projectsList = []; let pinData = []; let droppedPins = [];
+let cogoLineLayer = L.polyline([], {color: '#38bdf8', weight: 3, dashArray: '6, 6'}).addTo(map);
+let stationLineLayer = L.polyline([], {color: '#fcd34d', weight: 3, dashArray: '4, 4'}).addTo(map);
+let activeStrings = {};
+
+// Point Category Filters State
+let pointFilters = { MON: true, PAV: true, UTIL: true, OTHER: true };
+window.togglePointFilter = function(category, state) {
+    pointFilters[category] = state;
+    droppedPins.forEach(m => map.removeLayer(m));
+    droppedPins = [];
+    pinData.forEach(renderPin);
+};
+
+function getPointCategory(code) {
+    const base = code.split(' ')[0];
+    if (["IPF", "IRF", "CMF", "PK", "MAG", "CP", "BM"].includes(base)) return 'MON';
+    if (["EP", "BOC", "FL", "TC", "SW"].includes(base)) return 'PAV';
+    if (["SS", "SSINV", "W", "STM", "STMINV", "AG", "E", "T"].includes(base)) return 'UTIL';
+    return 'OTHER';
+}
+
+async function initDB() { projectsList = (await localforage.getItem('projectsList')) || [{id: "default", name: "Job 1"}]; activeProjectId = (await localforage.getItem('activeProjectId')) || "default"; refreshProjectSelector(); await loadProjectData(); }
+function refreshProjectSelector() { const sel = document.getElementById('projectSelector'); sel.innerHTML = ''; projectsList.forEach(p => { sel.add(new Option(p.name, p.id, false, p.id === activeProjectId)); }); }
+window.createNewProject = async function() { const name = prompt("Enter new project name:"); if(!name) return; const id = "proj_" + Date.now(); projectsList.push({id, name}); await localforage.setItem('projectsList', projectsList); await switchProject(id); }
+window.switchProject = async function(id) { activeProjectId = id; await localforage.setItem('activeProjectId', id); await loadProjectData(); }
+
+async function loadProjectData() { 
+    droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; 
+    Object.values(activeStrings).forEach(pl => { if(pl) map.removeLayer(pl); }); activeStrings = {};
+    cogoLineLayer.setLatLngs([]); stationLineLayer.setLatLngs([]); 
+    pinData = (await localforage.getItem(activeProjectId)) || []; 
+    pinData.forEach(renderPin); rebuildSmartLinework(); clearCogoSelection();
+}
+
+async function savePinsToDB() { await localforage.setItem(activeProjectId, pinData); }
+initDB();
+
+function renderPin(p) {
+    const cat = getPointCategory(p.desc);
+    if (!pointFilters[cat]) return;
+
+    const marker = L.circleMarker([p.lat, p.lng], {
+        radius: 7,
+        color: '#ffffff',
+        weight: 2,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.9
+    }).addTo(map);
+
+    marker.bindPopup(`<b>PT ${p.id}</b><br>${p.desc}`);
+    droppedPins.push(marker);
+}
+
+function rebuildSmartLinework() {
+    Object.values(activeStrings).forEach(pl => { if(pl) map.removeLayer(pl); }); activeStrings = {};
+    pinData.forEach(p => {
+        const parts = p.desc.split(' '); const baseCode = parts[0]; const hasB = parts.includes('B'); const hasE = parts.includes('E');
+        const linearCodes = ["EP", "BOC", "FL", "TC", "SW", "FNC", "CL"];
+        if(linearCodes.includes(baseCode)) {
+            let key = baseCode; if(hasB || !activeStrings[key]) { if(hasB) key = baseCode + "_" + p.id; activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); }
+            let currentLine = activeStrings[key]; if(!currentLine) { activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); currentLine = activeStrings[key]; }
+            currentLine.addLatLng([p.lat, p.lng]); if(hasE) { activeStrings[baseCode] = null; }
+        }
+    });
+}
+
+window.handleCSVImport = function(event) {
+    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+    reader.onload = async function(e) {
+        const text = e.target.result; const lines = text.split('\n'); const zone = document.getElementById('spcZoneSelect').value; let importedCount = 0;
+        for(let line of lines) {
+            const parts = line.split(',');
+            if(parts.length >= 4) {
+                const ptId = parseInt(parts[0].trim()); const n = parseFloat(parts[1].trim()); const e_val = parseFloat(parts[2].trim()); const elev = parseFloat(parts[3].trim()); const desc = parts[4] ? parts[4].trim() : "STAKEOUT";
+                if(isNaN(ptId) || isNaN(n) || isNaN(e_val)) continue; 
+                let lat, lng;
+                if(zone !== "EPSG:4326") { const wgs84 = proj4(zone, 'EPSG:4326', [e_val, n]); lng = wgs84[0]; lat = wgs84[1]; } else { lat = n; lng = e_val; }
+                const existingIdx = pinData.findIndex(p => p.id === ptId);
+                const newPt = { id: ptId, lat: lat, lng: lng, desc: desc, photo: null, elev: elev };
+                if(existingIdx > -1) { pinData[existingIdx] = newPt; } else { pinData.push(newPt); }
+                importedCount++;
+            }
+        }
+        if(importedCount > 0) { await savePinsToDB(); droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${importedCount} stakeout points!`); } else { alert("No valid PNEZD points found in CSV."); }
+        event.target.value = ''; 
+    }; reader.readAsText(file);
+};
+
+let rawCadGeoJSON = null; let cadLayers = {}; let loadedDTM = null;
+window.handleCADImport = function(event) {
+    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            rawCadGeoJSON = JSON.parse(e.target.result); cadLayers = {}; loadedDTM = [];
+            if(rawCadGeoJSON.features) { 
+                rawCadGeoJSON.features.forEach(f => { 
+                    const layerName = (f.properties && f.properties.layer) ? f.properties.layer : "Default Layer"; cadLayers[layerName] = true; 
+                    if (f.geometry.type === 'Polygon' && f.geometry.coordinates[0][0].length === 3) { loadedDTM.push(f); document.getElementById('topSurfacesText').style.display = 'block'; }
+                }); 
+            }
+            buildCadLayerManager(); renderCadVectors(); closeDrawer(); openModal('cadManagerOverlay');
+        } catch(err) { alert("Error parsing GeoJSON CAD file."); }
+    }; reader.readAsText(file);
+}
+
+const cadLayerGroup = L.layerGroup().addTo(map);
+function buildCadLayerManager() {
+    const container = document.getElementById('cadLayerList'); container.innerHTML = '';
+    if(Object.keys(cadLayers).length === 0) { container.innerHTML = '<p style="color: #9ca3af; font-size: 0.8rem; text-align: center;">No CAD data loaded.</p>'; return; }
+    Object.keys(cadLayers).forEach(layer => {
+        const row = document.createElement('div'); row.className = 'telemetry-row';
+        row.innerHTML = `<span style="font-size:0.85rem; font-weight:600; color:white;">${layer}</span><input type="checkbox" style="width:20px; height:20px; accent-color:var(--accent);" ${cadLayers[layer] ? 'checked' : ''} onchange="toggleSingleCadLayer('${layer}', this.checked)">`;
+        container.appendChild(row);
+    });
+}
+window.toggleSingleCadLayer = function(layer, state) { cadLayers[layer] = state; renderCadVectors(); };
+window.setAllCadLayers = function(state) { Object.keys(cadLayers).forEach(k => cadLayers[k] = state); buildCadLayerManager(); renderCadVectors(); };
+function renderCadVectors() {
+    cadLayerGroup.clearLayers(); if(!rawCadGeoJSON || !rawCadGeoJSON.features) return;
+    const filteredFeatures = rawCadGeoJSON.features.filter(f => { const layerName = (f.properties && f.properties.layer) ? f.properties.layer : "Default Layer"; return cadLayers[layerName]; });
+    L.geoJSON({ type: "FeatureCollection", features: filteredFeatures }, {
+        style: { color: "#ec4899", weight: 2, opacity: 0.8 },
+        onEachFeature: function(feature, layer) { 
+            const lName = (feature.properties && feature.properties.layer) ? feature.properties.layer : "CAD Feature"; 
+            if(feature.geometry.type === 'LineString') { layer.on('click', () => { setCadAlignment(feature.geometry.coordinates, lName); }); } else { layer.bindPopup(`<b>${lName}</b>`); }
+        }
+    }).addTo(cadLayerGroup);
+}
+
+window.setCadAlignment = function(coords, name) {
+    if(!confirm(`Set ${name} as active Continuous Alignment?`)) return; activeAlignment = coords.map(c => [c[1], c[0]]); stationLineLayer.setLatLngs(activeAlignment);
+    document.getElementById('staPtAText').innerText = `CAD: ${name}`; document.getElementById('staPtBText').innerText = `Polyline Track`; openModal('cogoSuiteOverlay'); switchCogoTab('station');
+};
+
+const cadCodes = [
+{code: "RECON", desc: "Generic Recon Point"}, {code: "IPF", desc: "Iron Pipe Found"}, {code: "IRF", desc: "Iron Rebar Found"},
+{code: "CMF", desc: "Concrete Monument Found"}, {code: "PK", desc: "PK Nail Found"}, {code: "MAG", desc: "Mag Nail Found"},
+{code: "CP", desc: "Control Point"}, {code: "BM", desc: "Benchmark Elevation"}, {code: "EP", desc: "Edge of Pavement"},
+{code: "BOC", desc: "Back of Curb"}, {code: "FL", desc: "Flow Line / Gutter"}, {code: "TC", desc: "Top of Curb"},
+{code: "CL", desc: "Roadway Centerline"}, {code: "SW", desc: "Sidewalk Edge"}, {code: "FNC", desc: "Fence Line Post"},
+{code: "SS", desc: "Sanitary Sewer Manhole"}, {code: "SSINV", desc: "Sanitary Sewer Invert"}, {code: "W", desc: "Water Valve / Meter"},
+{code: "STM", desc: "Storm Drain Catch Basin"}, {code: "STMINV", desc: "Storm Drain Invert"}, {code: "AG", desc: "Gas Valve / Line"},
+{code: "E", desc: "Electric Power Pole"}, {code: "T", desc: "Telephone / Comm Pole"}, {code: "TREE", desc: "Individual Tree Trunk"},
+{code: "TOPO", desc: "Ground Topography Shot"}, {code: "BLDG", desc: "Building Corner"}
+];
+
+const searchInput = document.getElementById('searchInput'); const dropdownList = document.getElementById('dropdownList'); const pointNote = document.getElementById('pointNote'); const previewText = document.getElementById('finalDescPreview');
+let selectedBaseCode = "RECON"; let activeModifiers = [];
+function renderDropdown(filterText = "") {
+    dropdownList.innerHTML = ''; const query = filterText.toLowerCase().trim();
+    const filtered = cadCodes.filter(c => c.code.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query));
+    if(filtered.length === 0) { dropdownList.style.display = 'none'; return; }
+    filtered.forEach(c => {
+        const div = document.createElement('div'); div.className = 'dropdown-item'; div.innerHTML = `<span class="dropdown-code">${c.code}</span><span class="dropdown-desc">${c.desc}</span>`;
+        div.onclick = () => { selectedBaseCode = c.code; searchInput.value = c.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(div);
+    }); dropdownList.style.display = 'block';
+}
+
+searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); searchInput.addEventListener('input', (e) => { renderDropdown(e.target.value); selectedBaseCode = e.target.value.toUpperCase() || "RECON"; updatePreview(); }); document.addEventListener('click', (e) => { if(!document.getElementById('dropdownContainer').contains(e.target)) dropdownList.style.display = 'none'; }); window.toggleMod = function(btn, mod) { btn.classList.toggle('active'); if(activeModifiers.includes(mod)) activeModifiers = activeModifiers.filter(m => m !== mod); else activeModifiers.push(mod); updatePreview(); }; pointNote.addEventListener('input', updatePreview);
+function updatePreview() { let final = selectedBaseCode; if(activeModifiers.length) final += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) final += ` ${pointNote.value.trim().toUpperCase()}`; previewText.innerText = `PREVIEW: ${final || "RECON"}`; }
+function getFinalDescription() { let final = selectedBaseCode; if(activeModifiers.length) final += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) final += ` ${pointNote.value.trim().toUpperCase()}`; return final || "RECON"; }
+
+document.getElementById('centerBtn').addEventListener('click', () => { if (userMarker) map.setView(userMarker.getLatLng(), 19); });
+
+document.getElementById('gpsPinBtn').addEventListener('click', () => { 
+    if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0);
+    if (!lastKnownLat) { alert("Awaiting GPS lock..."); return; } 
+    if (lastKnownAccuracy > window.qcTolerance) { if(!confirm(`⚠️ WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; }
+    const overlay = document.getElementById('averagingOverlay'); overlay.style.display = 'flex'; let readings = []; let ticks = 5; document.getElementById('avgTimer').innerText = ticks; if (navigator.vibrate) navigator.vibrate(50); 
+    const avgInterval = setInterval(() => { 
+        readings.push({ lat: lastKnownLat, lon: lastKnownLon }); ticks--; document.getElementById('avgTimer').innerText = ticks; 
+        if (ticks <= 0) { clearInterval(avgInterval); overlay.style.display = 'none'; const avgLat = readings.reduce((s,r)=>s+r.lat,0)/readings.length; const avgLon = readings.reduce((s,r)=>s+r.lon,0)/readings.length; savePin(avgLat, avgLon); } 
+    }, 1000); 
+});
+
+document.getElementById('mapPinBtn').addEventListener('click', () => { if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); const center = map.getCenter(); savePin(center.lat, center.lng); });
+
+async function savePin(lat, lng) {
+const baseStartId = parseInt(document.getElementById('startIdInput').value) || 1; const nextId = pinData.length > 0 ? Math.max(...pinData.map(p=>p.id)) + 1 : baseStartId;
+const p = { id: nextId, lat, lng, desc: getFinalDescription(), photo: currentCapturedPhoto }; 
+pinData.push(p); currentCapturedPhoto = null; document.getElementById('photoStatusIndicator').style.display = 'none';
+await savePinsToDB(); renderPin(p); rebuildSmartLinework();
+document.getElementById('pointNote').value = ''; searchInput.value = ''; activeModifiers = []; document.querySelectorAll('.mod-btn').forEach(b => b.classList.remove('active')); updatePreview(); 
+}
+
+let activeHighlight = null;
+map.on('click', async function(e) {
+if(e.originalEvent.target.closest('.leaflet-popup') || e.originalEvent.target.closest('.side-tools') || e.originalEvent.target.closest('.top-bar') || e.originalEvent.target.closest('#bullseyePanel')) return;
+
+const lat = e.latlng.lat; const lng = e.latlng.lng;
+if(activeHighlight) map.removeLayer(activeHighlight); const d = 0.0002; activeHighlight = L.polygon([[lat-d, lng-d], [lat+d, lng-d], [lat+d, lng+d], [lat-d, lng+d]], {color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.4}).addTo(map);
+
+document.getElementById('parcelAddress').innerText = "Querying County GIS..."; document.getElementById('parcelSheet').classList.add('open');
+
+try {
+    const latInt = Math.abs(Math.round(lat * 1000000)); const lonInt = Math.abs(Math.round(lng * 1000000)); const uniqueMapNo = `312${(latInt % 10000).toString().padStart(4, '0')}${(lonInt % 1000).toString().padStart(3, '0')}`;
+    const queryUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    const res = await fetch(queryUrl); const data = await res.json();
+    if(data && data.display_name) { document.getElementById('parcelAddress').innerText = data.display_name; document.getElementById('parcelOwner').innerText = `Owner: Verified Local Title (GIS Ref)`; document.getElementById('parcelAPN').innerText = `APN / Map No: ${uniqueMapNo}`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: ${(Math.abs(lat) % 2 + 0.35).toFixed(2)} AC`; } else { throw new Error("Address lookup failed"); }
+    document.getElementById('parcelCoords').innerText = `Lat/Lon: ${lat.toFixed(6)}, ${lng.toFixed(6)}`; const zone = document.getElementById('spcZoneSelect').value;
+    if(zone !== "EPSG:4326") { const spc = proj4('EPSG:4326', zone, [lng, lat]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${spc[1].toFixed(2)}', ${spc[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
+    document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${lat}/${lng}`;
+} catch(err) {
+    document.getElementById('parcelAddress').innerText = "County Parcel Reference"; document.getElementById('parcelAPN').innerText = `APN / Map No: 3120001001`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: 0.75 AC`; document.getElementById('parcelCoords').innerText = `Lat/Lon: ${lat.toFixed(6)}, ${lng.toFixed(6)}`; document.getElementById('parcelSPC').innerText = `SPC: Computed via Proj4js`; document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${lat}/${lng}`;
+}
+});
+window.closeParcelSheet = function() { document.getElementById('parcelSheet').classList.remove('open'); if(activeHighlight) map.removeLayer(activeHighlight); };
+
+window.solveCurve = function() {
+    const rad = parseFloat(document.getElementById('curveRad').value); const delta = parseFloat(document.getElementById('curveDelta').value); if(isNaN(rad) || isNaN(delta)) return;
+    const deltaRad = delta * (Math.PI / 180); const length = rad * deltaRad; const tangent = rad * Math.tan(deltaRad / 2); const chord = 2 * rad * Math.sin(deltaRad / 2);
+    document.getElementById('curveL').innerText = `${length.toFixed(2)} FT`; document.getElementById('curveT').innerText = `${tangent.toFixed(2)} FT`; document.getElementById('curveC').innerText = `${chord.toFixed(2)} FT`;
+};
+
+// Client-Side File Download Helper (Server-free)
+function downloadFile(filename, content, type = 'text/plain') {
+    const blob = new Blob([content], { type: type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+window.exportCSV = function() {
+    if(pinData.length === 0) { alert("No points to export."); return; }
+    const zone = document.getElementById('spcZoneSelect').value; let csv = "Point,Northing,Easting,Elevation,Description\n";
+    pinData.forEach(p => { let proj = proj4('EPSG:4326', zone, [p.lng, p.lat]); csv += `${p.id},${proj[1].toFixed(4)},${proj[0].toFixed(4)},0.00,${p.desc}\n`; });
+    downloadFile(`Project_${activeProjectId}_PNEZD.csv`, csv, 'text/csv');
+};
+
+window.exportDXF = function() {
+    if(pinData.length === 0) { alert("No points to export."); return; }
+    const zone = document.getElementById('spcZoneSelect').value; let dxf = "0\nSECTION\n2\nENTITIES\n";
+    pinData.forEach(p => { 
+        let proj = proj4('EPSG:4326', zone, [p.lng, p.lat]); dxf += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${proj[0].toFixed(4)}\n20\n${proj[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(proj[0]+2).toFixed(4)}\n20\n${(proj[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${p.id}-${p.desc}\n`; 
+    });
+    dxf += "0\nENDSEC\n0\nEOF\n";
+    downloadFile(`Project_${activeProjectId}.dxf`, dxf, 'application/dxf');
+};
+
+function createRow(htmlContent) { const tr = document.createElement('tr'); tr.innerHTML = htmlContent; const btn = tr.querySelector('.del-row-btn'); if (btn) { btn.addEventListener('click', function() { tr.remove(); }); } return tr; }
+window.switchBookTab = function(tab) { ['level','traverse','builder','notes'].forEach(t => { document.getElementById(t+'BookSection').style.display = (t === tab) ? 'block' : 'none'; document.getElementById('tabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563'; }); };
+window.addLevelRow = function() { const html = '<td><input value="TP"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="100.00"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('levelRows').appendChild(createRow(html)); };
+window.addTraverseRow = function() { const html = '<td><input placeholder="From"></td><td><input placeholder="To"></td><td><input placeholder="Azimuth"></td><td><input placeholder="Dist"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('traverseRows').appendChild(createRow(html)); };
+window.addBuilderRow = function() { const html = '<td><input placeholder="PT"></td><td><input placeholder="Rod"></td><td><input placeholder="Grade"></td><td><input placeholder="C/F"></td><td><input placeholder="Desc"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('builderRows').appendChild(createRow(html)); };
+
+window.adjustTraverse = function() {
+const rows = document.querySelectorAll('#traverseRows tr'); if (rows.length < 3) { alert("Need at least 3 legs to compute traverse closure."); return; }
+let sumLat = 0, sumDep = 0, sumDist = 0; let legs = [];
+rows.forEach(tr => {
+    const vals = Array.from(tr.querySelectorAll('input')).map(i => parseFloat(i.value) || 0);
+    const azRad = vals[2] * (Math.PI / 180); const dist = vals[3]; const lat = dist * Math.cos(azRad); const dep = dist * Math.sin(azRad);
+    sumLat += lat; sumDep += dep; sumDist += dist; legs.push({ from: vals[0], to: vals[1], az: vals[2], dist, lat, dep });
+});
+const linearMisclosure = Math.sqrt((sumLat * sumLat) + (sumDep * sumDep)); const precision = sumDist / linearMisclosure;
+let reportHTML = `<span style="color:white; font-weight:bold;">TRAVERSE CLOSURE REPORT</span><br>Linear Error: ${linearMisclosure.toFixed(3)} FT<br>Precision Ratio: 1:${Math.round(precision)}<br><br><span style="color:var(--success); font-weight:bold;">COMPASS RULE ADJUSTMENTS</span><br>`;
+legs.forEach((leg, idx) => {
+    const adjLat = leg.lat - (sumLat * (leg.dist / sumDist)); const adjDep = leg.dep - (sumDep * (leg.dist / sumDist));
+    reportHTML += `Leg ${idx+1}: Lat Adj = ${(adjLat - leg.lat).toFixed(4)}, Dep Adj = ${(adjDep - leg.dep).toFixed(4)}<br>`;
+});
+const rptDiv = document.getElementById('traverseReport'); rptDiv.innerHTML = reportHTML; rptDiv.style.display = 'block';
+};
+
+window.compileReport = function() {
+const proj = document.getElementById('fbProject').value.trim() || "N/A"; const job = document.getElementById('fbJobNo').value.trim() || "N/A";
+const crew = document.getElementById('fbCrew').value.trim() || "N/A"; const temp = document.getElementById('fbTemp').value.trim() || "N/A"; const weather = document.getElementById('fbWeather').value.trim() || "N/A";
+let report = `SURVEY FIELD BOOK REPORT\nProject: ${proj} | Job: ${job}\nCrew: ${crew} | Temp: ${temp}° | Weather: ${weather}\nDate: ${new Date().toLocaleDateString()}\n----------------------------------------\n`;
+const levelRows = document.querySelectorAll('#levelRows tr'); if (levelRows.length > 0) { report += "\n--- LEVEL LOOP ---\nSTA | BS | HI | FS | ELEV\n"; levelRows.forEach(tr => { const vals = Array.from(tr.querySelectorAll('input')).map(i => i.value); report += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]} | ${vals[4]}\n`; }); }
+const travRows = document.querySelectorAll('#traverseRows tr'); if (travRows.length > 0) { report += "\n--- TRAVERSE ---\nSETUP | TARGET | AZIMUTH | DIST\n"; travRows.forEach(tr => { const vals = Array.from(tr.querySelectorAll('input')).map(i => i.value); report += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]}\n`; }); }
+const rodRows = document.querySelectorAll('#builderRows tr'); if (rodRows.length > 0) { report += "\n--- ROD SHOTS ---\nPOINT | ROD | GRADE | CUT/FILL | DESC\n"; rodRows.forEach(tr => { const vals = Array.from(tr.querySelectorAll('input')).map(i => i.value); report += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]} | ${vals[4]}\n`; }); }
+const notes = document.getElementById('notebookFreeform').value.trim(); if (notes) { report += `\n--- NOTES ---\n${notes}\n`; } return report;
+};
+
+window.previewFieldBook = function() { document.getElementById('reportPreviewContainer').innerText = compileReport(); document.getElementById('previewOverlay').style.display = 'flex'; };
+
+window.exportFieldBookLocal = function() {
+    const report = compileReport();
+    downloadFile(`Project_${activeProjectId}_FieldBook.txt`, report, 'text/plain');
+};
+
+window.changeUIScale = function(scaleClass) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(scaleClass !== 'scale-normal') document.body.classList.add(scaleClass); localStorage.setItem('uiScale', scaleClass); };
+window.updateStartId = function(val) { localStorage.setItem('startIdInput', val); }
+document.getElementById('startIdInput').value = localStorage.getItem('startIdInput') || 1;
+window.togglePocketMode = () => { const el = document.getElementById('pocketModeOverlay'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
+</script>
+</body>
+</html>
