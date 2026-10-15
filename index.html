@@ -7,6 +7,20 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
+const CURRENT_VERSION = "1.0"; // Update this number whenever you change index.html
+
+fetch('version.txt?t=' + new Date().getTime())
+    .then(response => response.text())
+    .then(serverVersion => {
+        if (serverVersion.trim() !== CURRENT_VERSION) {
+            // Version mismatch detected. Force a cache-busting reload.
+            window.location.replace(window.location.pathname + "?v=" + new Date().getTime());
+        }
+    })
+    .catch(err => console.log("Offline or version check failed."));
+</script>
+
+<script>
 /*
  * ==============================================================================
  * FIELD HUD: PRO EDITION (EDITION 2026)
