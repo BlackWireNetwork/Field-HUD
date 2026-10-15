@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.1";
+const CURRENT_VERSION = "1.2";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -20,13 +20,6 @@ fetch('version.txt?t=' + new Date().getTime())
 </script>
 
 <script>
-/*
- * ==============================================================================
- * FIELD HUD: PRO EDITION (EDITION 2026)
- * PROPRIETARY AND CONFIDENTIAL - ALL RIGHTS RESERVED
- * UNAUTHORIZED REVERSE ENGINEERING, DECOMPILATION, OR REDISTRIBUTION PROHIBITED.
- * ==============================================================================
- */
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) { registration.unregister(); }
@@ -110,7 +103,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 
 <div id="map"></div>
 <div class="crosshair"></div>
-<button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">☰</button>
+<button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">Menu</button>
 
 <div class="top-bar glass-panel">
 <div>
@@ -122,10 +115,10 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <div id="targetIndicator">
 <div style="display:flex; justify-content:space-between; align-items:center;">
     <div id="telDistHeader" style="font-size: 1.2rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
-    <div id="telDirectionArrow" style="font-size: 1rem; font-weight: 900; color: #38bdf8; margin-left: 0.5rem;">⬆️</div>
-    <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.6rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.5rem;">◎ VISUAL</button>
+    <div id="telDirectionArrow" style="font-size: 1rem; font-weight: 900; color: #38bdf8; margin-left: 0.5rem;">NORTH</div>
+    <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.6rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.5rem;">VISUAL</button>
 </div>
-<div id="telDeltas" style="font-size: 0.75rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.2rem;">ΔN: -- | ΔE: --</div>
+<div id="telDeltas" style="font-size: 0.75rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.2rem;">DN: -- | DE: --</div>
 <div id="telCutFill" style="font-size: 0.75rem; font-family: monospace; color: #38bdf8; font-weight: 900; margin-top:0.1rem; display:none;">C/F: --</div>
 </div>
 </div>
@@ -138,16 +131,16 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 
 <div id="cogoSelectionBar">
     <span id="cogoSelectionText" style="font-family:monospace; font-weight:bold; color:white; font-size:0.8rem;">Selected: --</span>
-    <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedInverse()">📐 INV</button>
-    <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedBaseline()">📏 STA/OFF</button>
+    <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedInverse()">INV</button>
+    <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedBaseline()">STA/OFF</button>
     <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="clearCogoSelection()">X</button>
 </div>
 
 <div class="side-tools">
-<button class="btn btn-icon glass-panel" onclick="togglePocketMode()" title="Pocket Battery Saver">📱</button>
-<button class="btn btn-icon glass-panel" onclick="openModal('settingsOverlay')" style="color: #60a5fa;" title="HUD Settings">⚙️</button>
-<button class="btn btn-icon glass-panel" id="centerBtn" style="color: var(--accent);" title="Center On GPS">🎯</button>
-<button class="btn btn-icon glass-panel" onclick="openModal('helpOverlay')" style="color: #fcd34d;" title="Field Manual">❓</button>
+<button class="btn btn-icon glass-panel" onclick="togglePocketMode()" title="Pocket Battery Saver">BAT</button>
+<button class="btn btn-icon glass-panel" onclick="openModal('settingsOverlay')" style="color: #60a5fa;" title="HUD Settings">SET</button>
+<button class="btn btn-icon glass-panel" id="centerBtn" style="color: var(--accent);" title="Center On GPS">GPS</button>
+<button class="btn btn-icon glass-panel" onclick="openModal('helpOverlay')" style="color: #fcd34d;" title="Field Manual">HLP</button>
 </div>
 
 <div class="bottom-drawer glass-panel">
@@ -168,12 +161,12 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 </div>
 </div>
 <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
-<button id="gpsPinBtn" class="btn" style="background: var(--danger);">📍 STORE GPS</button>
-<button id="mapPinBtn" class="btn" style="background: #8b5cf6;">➕ STORE MAP</button>
-<button class="btn" style="background: #f59e0b;" onclick="document.getElementById('pointCameraInput').click()">📷 SNAP PHOTO</button>
+<button id="gpsPinBtn" class="btn" style="background: var(--danger);">STORE GPS</button>
+<button id="mapPinBtn" class="btn" style="background: #8b5cf6;">STORE MAP</button>
+<button class="btn" style="background: #f59e0b;" onclick="document.getElementById('pointCameraInput').click()">SNAP PHOTO</button>
 </div>
 <input type="file" id="pointCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePointPhoto(event)">
-<div id="photoStatusIndicator" style="display:none; text-align:center; font-size:0.75rem; color:#f59e0b; font-family:monospace; font-weight:bold;">📸 PHOTO ATTACHED TO NEXT SHOT</div>
+<div id="photoStatusIndicator" style="display:none; text-align:center; font-size:0.75rem; color:#f59e0b; font-family:monospace; font-weight:bold;">PHOTO ATTACHED TO NEXT SHOT</div>
 </div>
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
@@ -181,24 +174,24 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <h2 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 0.5rem;">PROJECT MANAGER</h2>
 <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
 <select id="projectSelector" onchange="switchProject(this.value)" style="flex-grow: 1; font-size: 0.8rem;"></select>
-<button class="btn" style="background: var(--accent); width: auto; padding: 0.5rem;" onclick="createNewProject()">➕</button>
+<button class="btn" style="background: var(--accent); width: auto; padding: 0.5rem;" onclick="createNewProject()">NEW</button>
 </div>
 
 <h2 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 0.5rem;">HUB & TOOLS</h2>
-<button class="btn" style="background: #6366f1; margin-bottom:0.5rem;" onclick="openModal('dataHubOverlay');">📂 Data & Files</button>
-<button class="btn" style="background: #38bdf8; margin-bottom:0.5rem;" onclick="openModal('cogoSuiteOverlay');">🧮 COGO Suite</button>
+<button class="btn" style="background: #6366f1; margin-bottom:0.5rem;" onclick="openModal('dataHubOverlay');">Data & Files</button>
+<button class="btn" style="background: #38bdf8; margin-bottom:0.5rem;" onclick="openModal('cogoSuiteOverlay');">COGO Suite</button>
 
 <h2 style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; margin-bottom: 0.5rem;">CAD & MAP</h2>
-<button class="btn" style="background: #a855f7; margin-bottom:0.5rem;" onclick="openModal('cadManagerOverlay')">📋 Layer & Point Filters</button>
-<button class="btn" style="background: #10b981; margin-bottom:0.5rem;" onclick="document.getElementById('csvInput').click();">📥 Import Stakeout CSV</button>
+<button class="btn" style="background: #a855f7; margin-bottom:0.5rem;" onclick="openModal('cadManagerOverlay')">Layer & Point Filters</button>
+<button class="btn" style="background: #10b981; margin-bottom:0.5rem;" onclick="document.getElementById('csvInput').click();">Import Stakeout CSV</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
-<button class="btn" style="background: #ec4899; margin-bottom:0.5rem;" onclick="document.getElementById('cadInput').click();">🗂️ Import Vector / DTM</button>
+<button class="btn" style="background: #ec4899; margin-bottom:0.5rem;" onclick="document.getElementById('cadInput').click();">Import Vector / DTM</button>
 <input type="file" id="cadInput" accept=".geojson,.json,.txt" style="display: none;" onchange="handleCADImport(event)">
 
 <h2 style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; margin-bottom: 0.5rem;">SETTINGS & HELP</h2>
-<button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="openModal('rtkOverlay')">📡 RTK Connectivity</button>
-<button class="btn" style="background: #6b7280; margin-bottom:1rem;" onclick="openModal('aboutOverlay')">⚖️ About & Legal</button>
-<button class="btn" style="background: var(--danger);" onclick="clearAllData(); closeDrawer();">🗑️ CLEAR ACTIVE PROJECT</button>
+<button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="openModal('rtkOverlay')">RTK Connectivity</button>
+<button class="btn" style="background: #6b7280; margin-bottom:1rem;" onclick="openModal('aboutOverlay')">About & Legal</button>
+<button class="btn" style="background: var(--danger);" onclick="clearAllData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
 </div>
 
 <div id="termsOverlay">
@@ -216,7 +209,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="dataHubOverlay" class="modal-bg">
   <div class="modal-content glass-panel" style="max-width: 750px;">
     <div class="flex justify-between items-center mb-3">
-      <h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">📂 DATA HUB</h2>
+      <h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">DATA HUB</h2>
       <button onclick="closeModal('dataHubOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.25rem; margin-bottom: 1rem;">
@@ -235,8 +228,8 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
     </div>
     <div id="dh-files" style="display:none;">
         <div class="flex gap-2 mb-3">
-            <button class="btn" style="background:var(--success); font-size:0.75rem;" onclick="exportCSV()">💾 EXPORT CSV</button>
-            <button class="btn" style="background:#8b5cf6; font-size:0.75rem;" onclick="exportDXF()">✏️ EXPORT DXF</button>
+            <button class="btn" style="background:var(--success); font-size:0.75rem;" onclick="exportCSV()">EXPORT CSV</button>
+            <button class="btn" style="background:#8b5cf6; font-size:0.75rem;" onclick="exportDXF()">EXPORT DXF</button>
         </div>
         <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.5rem;">Local files generated via client download:</p>
         <div style="max-height: 300px; overflow-y: auto;">
@@ -282,7 +275,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         </table>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
         <button class="btn" style="background: var(--success);" onclick="addTraverseRow()">+ Add Leg</button>
-        <button class="btn" style="background: #8b5cf6;" onclick="adjustTraverse()">⚖️ Adjust</button>
+        <button class="btn" style="background: #8b5cf6;" onclick="adjustTraverse()">Adjust</button>
         </div>
         <div id="traverseReport" style="display:none; font-family: monospace; font-size:0.75rem; background:rgba(0,0,0,0.4); padding:0.5rem; margin-top:0.5rem; color:#9ca3af; border-radius:0.5rem;"></div>
         </div>
@@ -307,7 +300,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="cogoSuiteOverlay" class="modal-bg">
   <div class="modal-content glass-panel" style="max-width: 600px;">
     <div class="flex justify-between items-center mb-3">
-      <h2 style="font-size: 1.3rem; font-weight: 900; color: #38bdf8;">🧮 COGO SUITE</h2>
+      <h2 style="font-size: 1.3rem; font-weight: 900; color: #38bdf8;">COGO SUITE</h2>
       <button onclick="closeModal('cogoSuiteOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.25rem; margin-bottom: 1rem;">
@@ -317,7 +310,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
       <button id="csTabBtn-conv" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('conv')">Conv.</button>
     </div>
     <div id="cs-inverse">
-        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>📐 INV</b>.</p>
+        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>INV</b>.</p>
         <div class="flex justify-between py-2 border-b border-gray-700 font-monospace text-sm mb-2">
             <span>FROM: <b id="cogoPtAText" style="color:#38bdf8;">--</b></span>
             <span>TO: <b id="cogoPtBText" style="color:#38bdf8;">--</b></span>
@@ -328,7 +321,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         </div>
     </div>
     <div id="cs-station" style="display:none;">
-        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>📏 STA/OFF</b>.</p>
+        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>STA/OFF</b>.</p>
         <div class="flex justify-between py-2 border-b border-gray-700 font-monospace text-sm mb-2">
             <span>ALIGN: <b id="staPtAText" style="color:#10b981;">--</b></span>
             <span>TO: <b id="staPtBText" style="color:#10b981;">--</b></span>
@@ -393,12 +386,13 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="settingsOverlay" class="modal-bg">
 <div class="modal-content glass-panel">
 <div class="flex justify-between items-center mb-4">
-<h2 style="font-size: 1.3rem; font-weight: 900; color: #60a5fa;">⚙️ HUD SETTINGS</h2>
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #60a5fa;">HUD SETTINGS</h2>
 <button onclick="closeModal('settingsOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div class="telemetry-row"><span>SPC Zone:</span>
 <select id="spcZoneSelect">
-<option value="EPSG:32133" selected>NAD83 South Carolina (ftUS)</option>
+<option value="AUTO" selected>Auto-Detect (Global GPS)</option>
+<option value="EPSG:32133">NAD83 South Carolina (ftUS)</option>
 <option value="EPSG:4326">WGS84 (Raw Lat/Lon)</option>
 <option value="EPSG:2264">NAD83 NC State Plane (ftUS)</option>
 <option value="EPSG:2236">NAD83 FL East (ftUS)</option>
@@ -442,7 +436,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="cadManagerOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 500px;">
 <div class="flex justify-between items-center mb-4">
-<h2 style="font-size: 1.3rem; font-weight: 900; color: #ec4899;">📋 CAD & POINT FILTERS</h2>
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #ec4899;">CAD & POINT FILTERS</h2>
 <button onclick="closeModal('cadManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.5rem;">Toggle CAD Layers:</p>
@@ -462,7 +456,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="aboutOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 550px;">
 <div class="flex justify-between items-center mb-3">
-<h2 style="font-size: 1.3rem; font-weight: 900; color: #6b7280;">⚖️ ABOUT & LEGAL</h2>
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #6b7280;">ABOUT & LEGAL</h2>
 <button onclick="closeModal('aboutOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div style="font-size: 0.8rem; color: #d1d5db; line-height: 1.6; max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
@@ -487,30 +481,30 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="helpOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 700px;">
 <div class="flex justify-between items-center mb-2">
-<h2 style="font-size: 1.5rem; font-weight: 900; color: #fcd34d;">❓ FIELD MANUAL</h2>
+<h2 style="font-size: 1.5rem; font-weight: 900; color: #fcd34d;">FIELD MANUAL</h2>
 <button onclick="closeModal('helpOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem;">Engineering-grade field guidelines and operational quick-start procedures.</p>
 <div class="help-grid" style="max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
     <div class="help-card">
-        <h3>📍 1. GPS Storing & Averaging</h3>
-        <p>Tap <b>STORE GPS</b> to trigger a 5-second averaging countdown. The app records multiple epochs, averages the coordinates to cancel out multipath/jitter, and flags any point outside your QC Tolerance setting.</p>
+        <h3>1. GPS Storing & Averaging</h3>
+        <p>Tap STORE GPS to trigger a 5-second averaging countdown. The app records multiple epochs, averages the coordinates to cancel out multipath/jitter, and flags any point outside your QC Tolerance setting.</p>
     </div>
     <div class="help-card">
-        <h3>🔗 2. Smart Linework Coding</h3>
-        <p>Linear features (e.g., EP, BOC, FL, TC, SW) automatically string together on the map. Use the modifier bar: tap <b>B (Begin)</b> on the first shot to start a fresh polyline string, and <b>E (End)</b> on the final shot to terminate it.</p>
+        <h3>2. Smart Linework Coding</h3>
+        <p>Linear features (e.g., EP, BOC, FL, TC, SW) automatically string together on the map. Use the modifier bar: tap B (Begin) on the first shot to start a fresh polyline string, and E (End) on the final shot to terminate it.</p>
     </div>
     <div class="help-card">
-        <h3>📡 3. RTK NMEA Bridge Setup</h3>
-        <p>To feed high-precision RTK data from your GNSS receiver (Topcon/Trimble): pair via Bluetooth, open <b>Lefebure NTRIP</b>, set receiver output to TCP Server on port <b>50000</b>. Field HUD's Python backend automatically streams true centimeter accuracy.</p>
+        <h3>3. RTK NMEA Bridge Setup</h3>
+        <p>To feed high-precision RTK data from your GNSS receiver (Topcon/Trimble): pair via Bluetooth, open Lefebure NTRIP, set receiver output to TCP Server on port 50000. Field HUD's Python backend automatically streams true centimeter accuracy.</p>
     </div>
     <div class="help-card">
-        <h3>🧮 4. COGO Suite & Inverses</h3>
-        <p>Select any two points on the map to activate the top selection bar. Tap <b>INV</b> for inverse bearing and horizontal distance, or <b>STA/OFF</b> to calculate station and offset relative to a baseline or CAD alignment.</p>
+        <h3>4. COGO Suite & Inverses</h3>
+        <p>Select any two points on the map to activate the top selection bar. Tap INV for inverse bearing and horizontal distance, or STA/OFF to calculate station and offset relative to a baseline or CAD alignment.</p>
     </div>
     <div class="help-card">
-        <h3>📋 5. CAD Layers & Point Filters</h3>
-        <p>Import GeoJSON vector and surface files (`.geojson`/`.txt`). Use the <b>Layer & Point Filters Manager</b> to toggle individual CAD layers or filter out point category types on the map overlay.</p>
+        <h3>5. CAD Layers & Point Filters</h3>
+        <p>Import GeoJSON vector and surface files (`.geojson`/`.txt`). Use the Layer & Point Filters Manager to toggle individual CAD layers or filter out point category types on the map overlay.</p>
     </div>
 </div>
 </div>
@@ -519,13 +513,13 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="rtkOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 600px;">
 <div class="flex justify-between items-center mb-2">
-<h2 style="font-size: 1.5rem; font-weight: 900; color: #4b5563;">📡 RTK NMEA BRIDGE</h2>
+<h2 style="font-size: 1.5rem; font-weight: 900; color: #4b5563;">RTK NMEA BRIDGE</h2>
 <button onclick="closeModal('rtkOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <p style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 1rem;">To get True RTK Accuracy into Field HUD:</p>
 <div class="help-grid">
     <div class="help-card"><h3>Step 1: Connect Receiver</h3><p>Pair your Topcon/Trimble receiver via Bluetooth.</p></div>
-    <div class="help-card"><h3>Step 2: Start Lefebure NTRIP</h3><p>Open Lefebure. Go to Receiver Settings -> <b>Output to TCP Server</b>. Set the port to <b>50000</b>.</p></div>
+    <div class="help-card"><h3>Step 2: Start Lefebure NTRIP</h3><p>Open Lefebure. Go to Receiver Settings -> Output to TCP Server. Set the port to 50000.</p></div>
     <div class="help-card"><h3>Step 3: Connect</h3><p>Once Lefebure has an RTK fix, it broadcasts raw NMEA. Field HUD's background Python server automatically connects to port 50000 and displays True Precision on the HUD.</p></div>
 </div>
 </div>
@@ -537,8 +531,8 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <button onclick="closeParcelSheet()" class="btn" style="background: var(--danger); width: auto; padding: 0.2rem 0.6rem;">X</button>
 </div>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; margin-bottom: 0.5rem;">
-<button id="pTab1Btn" class="btn" style="background: var(--accent); font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(1)">📍 Core Telemetry</button>
-<button id="pTab2Btn" class="btn" style="background: #4b5563; font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(2)">⚖️ Survey & Deeds</button>
+<button id="pTab1Btn" class="btn" style="background: var(--accent); font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(1)">Core Telemetry</button>
+<button id="pTab2Btn" class="btn" style="background: #4b5563; font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(2)">Survey & Deeds</button>
 </div>
 <div id="parcelTab1" style="font-family: monospace; font-size: 0.8rem; color: #d1d5db; line-height: 1.5;">
 <p id="parcelOwner">Owner: Verified Local Title</p>
@@ -553,17 +547,17 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <p id="parcelFloodZone">FEMA Flood Zone: Zone X (Unshaded)</p>
 <p id="parcelZoning">Municipal Zoning: R-1 (Single Family)</p>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; margin-top: 0.6rem;">
-<button class="btn" style="background: #f59e0b; font-size:0.7rem; padding:0.4rem;" onclick="copyParcelAPN()">📋 COPY MAP NO</button>
-<a href="https://www.greenvillecounty.org/appsas400/RealProperty/" target="_blank" style="text-decoration:none;"><button class="btn" style="background: #3b82f6; font-size:0.7rem; padding:0.4rem;">🌐 COUNTY PORTAL</button></a>
+<button class="btn" style="background: #f59e0b; font-size:0.7rem; padding:0.4rem;" onclick="copyParcelAPN()">COPY MAP NO</button>
+<a href="https://www.greenvillecounty.org/appsas400/RealProperty/" target="_blank" style="text-decoration:none;"><button class="btn" style="background: #3b82f6; font-size:0.7rem; padding:0.4rem;">COUNTY PORTAL</button></a>
 </div>
 </div>
-<a id="parcelLink" href="#" target="_blank"><button class="btn" style="background: #8b5cf6; margin-top: 0.6rem; font-size: 0.8rem;">🔗 OPEN REGRID MAP</button></a>
+<a id="parcelLink" href="#" target="_blank"><button class="btn" style="background: #8b5cf6; margin-top: 0.6rem; font-size: 0.8rem;">OPEN REGRID MAP</button></a>
 </div>
 
 <div id="targetOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 400px;">
 <div class="flex justify-between items-center mb-3">
-<h2 style="font-size: 1.3rem; font-weight: 900; color: #10b981;">🎯 SET TARGET</h2>
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #10b981;">SET TARGET</h2>
 <button onclick="closeModal('targetOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <input type="number" id="targetDesignElev" placeholder="Design Elev (FT) - Leave blank if N/A" step="0.01">
@@ -574,7 +568,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="previewOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 650px;">
 <div class="flex justify-between items-center mb-3">
-<h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">📄 REPORT PREVIEW</h2>
+<h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">REPORT PREVIEW</h2>
 <button onclick="closeModal('previewOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div id="reportPreviewContainer" class="report-preview-box"></div>
@@ -587,7 +581,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 </div>
 
 <div id="pocketModeOverlay" onclick="togglePocketMode()">
-<span style="color:var(--danger); margin-bottom:1rem; font-size: 2rem; font-weight: 900;">🔴 GPS ACTIVE</span>
+<span style="color:var(--danger); margin-bottom:1rem; font-size: 2rem; font-weight: 900;">GPS ACTIVE</span>
 <span style="font-size: 1.25rem; font-weight: 600; color: #666;">TAP ANYWHERE TO WAKE</span>
 </div>
 
@@ -620,6 +614,23 @@ let lastKnownLat = null;
 let lastKnownLon = null;
 let lastKnownAccuracy = 999;
 let activeTargetPoint = null;
+
+// Auto-detect Global State Plane or UTM based on longitude/latitude
+function getAutoCRS(lat, lon) {
+    if (lat >= 32.0 && lat <= 35.2 && lon >= -83.5 && lon <= -78.5) {
+        return "EPSG:32133"; // NAD83 South Carolina ftUS
+    } else if (lat >= 33.8 && lat <= 36.6 && lon >= -84.3 && lon <= -75.4) {
+        return "EPSG:2264"; // NAD83 North Carolina ftUS
+    } else if (lat >= 24.3 && lat <= 31.0 && lon >= -87.6 && lon <= -79.8) {
+        return "EPSG:2236"; // NAD83 Florida East ftUS
+    } else {
+        // Fallback to standard UTM zone based on longitude for global testers
+        const utmZone = Math.floor((lon + 180) / 6) + 1;
+        const epsg = lat >= 0 ? (32600 + utmZone) : (32700 + utmZone);
+        proj4.defs(`EPSG:${epsg}`, `+proj=utm +zone=${utmZone} ${lat >= 0 ? '' : '+south '}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`);
+        return `EPSG:${epsg}`;
+    }
+}
 
 function startGeoTracking() {
     if ('geolocation' in navigator) {
@@ -694,14 +705,14 @@ function updateStakeoutArrow(_0x1c, _0x2d) {
     const _0x3e = Math.atan2(_0x2d, _0x1c);
     let _0x4f = _0x3e * (180 / Math.PI);
     if (_0x4f < 0) _0x4f += 360;
-    let _0x50 = '⬆️ North';
-    if (_0x4f >= 22.5 && _0x4f < 67.5) _0x50 = '↗️ NE';
-    else if (_0x4f >= 67.5 && _0x4f < 112.5) _0x50 = '➡️ East';
-    else if (_0x4f >= 112.5 && _0x4f < 157.5) _0x50 = '↘️ SE';
-    else if (_0x4f >= 157.5 && _0x4f < 202.5) _0x50 = '⬇️ South';
-    else if (_0x4f >= 202.5 && _0x4f < 247.5) _0x50 = '↙️ SW';
-    else if (_0x4f >= 247.5 && _0x4f < 292.5) _0x50 = '⬅️ West';
-    else if (_0x4f >= 292.5 && _0x4f < 337.5) _0x50 = '↖️ NW';
+    let _0x50 = 'NORTH';
+    if (_0x4f >= 22.5 && _0x4f < 67.5) _0x50 = 'NE';
+    else if (_0x4f >= 67.5 && _0x4f < 112.5) _0x50 = 'EAST';
+    else if (_0x4f >= 112.5 && _0x4f < 157.5) _0x50 = 'SE';
+    else if (_0x4f >= 157.5 && _0x4f < 202.5) _0x50 = 'SOUTH';
+    else if (_0x4f >= 202.5 && _0x4f < 247.5) _0x50 = 'SW';
+    else if (_0x4f >= 247.5 && _0x4f < 292.5) _0x50 = 'WEST';
+    else if (_0x4f >= 292.5 && _0x4f < 337.5) _0x50 = 'NW';
     const _0x61 = document.getElementById('telDirectionArrow');
     if (_0x61) _0x61.innerText = _0x50;
 }
@@ -726,16 +737,23 @@ window.deletePointFromMap = async function(_0x40) {
     rebuildSmartLinework();
 };
 
+function getActiveCRSCoord(lat, lon) {
+    let zone = document.getElementById('spcZoneSelect').value;
+    if (zone === "AUTO") {
+        zone = getAutoCRS(lat, lon);
+    }
+    return proj4('EPSG:4326', zone, [lon, lat]);
+}
+
 function updateActiveStakeoutTelemetry() {
     if (!activeTargetPoint || !lastKnownLat) return;
-    const _0x1e = document.getElementById('spcZoneSelect').value;
-    const _0x2f = proj4('EPSG:4326', _0x1e, [lastKnownLon, lastKnownLat]);
-    const _0x30 = proj4('EPSG:4326', _0x1e, [activeTargetPoint.lng, activeTargetPoint.lat]);
-    const _0x41 = _0x30[1] - _0x2f[1];
-    const _0x52 = _0x30[0] - _0x2f[0];
+    const gpsCoord = getActiveCRSCoord(lastKnownLat, lastKnownLon);
+    const targetCoord = getActiveCRSCoord(activeTargetPoint.lat, activeTargetPoint.lng);
+    const _0x41 = targetCoord[1] - gpsCoord[1];
+    const _0x52 = targetCoord[0] - gpsCoord[0];
     const _0x63 = Math.sqrt((_0x41 * _0x41) + (_0x52 * _0x52));
     document.getElementById('telDistHeader').innerText = `${_0x63.toFixed(2)} FT`;
-    document.getElementById('telDeltas').innerText = `ΔN: ${_0x41.toFixed(2)}' | ΔE: ${_0x52.toFixed(2)}'`;
+    document.getElementById('telDeltas').innerText = `DN: ${_0x41.toFixed(2)}' | DE: ${_0x52.toFixed(2)}'`;
     updateStakeoutArrow(_0x41, _0x52);
     drawBullseye(_0x41, _0x52, _0x63);
     const _0x74 = document.getElementById('targetIndicator');
@@ -879,9 +897,9 @@ function renderPin(_0x56, _0x57) {
             <b style="font-size:0.95rem; color:#3b82f6;">PT ${_0x56.id}</b><br>
             <span style="font-size:0.8rem; font-weight:bold; color:#333;">${_0x56.desc}</span><br>
             <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.6rem;">
-                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${_0x57})">🎯 STAKE OUT</button>
-                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${_0x56.lat}, ${_0x56.lng})">🔍 CENTER</button>
-                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${_0x57})">🗑️ DELETE</button>
+                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${_0x57})">STAKE OUT</button>
+                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${_0x56.lat}, ${_0x56.lng})">CENTER</button>
+                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${_0x57})">DELETE</button>
             </div>
         </div>
     `;
@@ -905,14 +923,16 @@ function rebuildSmartLinework() {
 window.handleCSVImport = function(_0x64) {
     const _0x65 = _0x64.target.files[0]; if (!_0x65) return; const _0x66 = new FileReader();
     _0x66.onload = async function(_0x67) {
-        const _0x68 = _0x67.target.result; const _0x69 = _0x68.split('\n'); const _0x6a = document.getElementById('spcZoneSelect').value; let _0x6b = 0;
+        const _0x68 = _0x67.target.result; const _0x69 = _0x68.split('\n'); let _0x6b = 0;
         for(let _0x6c of _0x69) {
             const _0x6d = _0x6c.split(',');
             if(_0x6d.length >= 4) {
                 const _0x6e = parseInt(_0x6d[0].trim()); const _0x6f = parseFloat(_0x6d[1].trim()); const _0x70 = parseFloat(_0x6d[2].trim()); const _0x71 = parseFloat(_0x6d[3].trim()); const _0x72 = _0x6d[4] ? _0x6d[4].trim() : "STAKEOUT";
                 if(isNaN(_0x6e) || isNaN(_0x6f) || isNaN(_0x70)) continue; 
                 let _0x73, _0x74;
-                if(_0x6a !== "EPSG:4326") { const _0x75 = proj4(_0x6a, 'EPSG:4326', [_0x70, _0x6f]); _0x74 = _0x75[0]; _0x73 = _0x75[1]; } else { _0x73 = _0x6f; _0x74 = _0x70; }
+                let zone = document.getElementById('spcZoneSelect').value;
+                if (zone === "AUTO") zone = getAutoCRS(_0x6f, _0x70);
+                if(zone !== "EPSG:4326") { const _0x75 = proj4(zone, 'EPSG:4326', [_0x70, _0x6f]); _0x74 = _0x75[0]; _0x73 = _0x75[1]; } else { _0x73 = _0x6f; _0x74 = _0x70; }
                 const _0x76 = pinData.findIndex(_0x77 => _0x77.id === _0x6e);
                 const _0x78 = { id: _0x6e, lat: _0x73, lng: _0x74, desc: _0x72, photo: null, elev: _0x71 };
                 if(_0x76 > -1) { pinData[_0x76] = _0x78; } else { pinData.push(_0x78); }
@@ -1003,7 +1023,7 @@ document.getElementById('centerBtn').addEventListener('click', () => { if (userM
 document.getElementById('gpsPinBtn').addEventListener('click', () => { 
     if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0);
     if (!lastKnownLat) { alert("Awaiting GPS lock..."); return; } 
-    if (lastKnownAccuracy > window.qcTolerance) { if(!confirm(`⚠️ WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; }
+    if (lastKnownAccuracy > window.qcTolerance) { if(!confirm(`WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; }
     const _0xa0 = document.getElementById('averagingOverlay'); _0xa0.style.display = 'flex'; let _0xa1 = []; let _0xa2 = 5; document.getElementById('avgTimer').innerText = _0xa2; if (navigator.vibrate) navigator.vibrate(50); 
     const _0xa3 = setInterval(() => { 
         _0xa1.push({ lat: lastKnownLat, lon: lastKnownLon }); _0xa2--; document.getElementById('avgTimer').innerText = _0xa2; 
@@ -1025,15 +1045,17 @@ let activeHighlight = null;
 map.on('click', async function(_0xb2) {
     if(_0xb2.originalEvent.target.closest('.leaflet-popup') || _0xb2.originalEvent.target.closest('.side-tools') || _0xb2.originalEvent.target.closest('.top-bar') || _0xb2.originalEvent.target.closest('#bullseyePanel')) return;
     const _0xb3 = _0xb2.latlng.lat; const _0xb4 = _0xb2.latlng.lng;
-    if(activeHighlight) map.removeLayer(activeHighlight); const _0xb5 = 0.0002; activeHighlight = L.polygon([[_0xb3-_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4+_0xb5], [_0xb3-_0xb5, _0xb4+_0xb5]], {color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.4}).addTo(map);
+    if(activeHighlight) map.removeLayer(activeHighlight); const _0xb5 = 0.0002; activeHighlight = L.polygon([[_0xb3-_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4+_0xb5], [_0xb3-_0xb5, _0xb4-_0xb5]], {color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.4}).addTo(map);
     document.getElementById('parcelAddress').innerText = "Querying County GIS..."; document.getElementById('parcelSheet').classList.add('open');
     try {
         const _0xb6 = Math.abs(Math.round(_0xb3 * 1000000)); const _0xb7 = Math.abs(Math.round(_0xb4 * 1000000)); const _0xb8 = `312${(_0xb6 % 10000).toString().padStart(4, '0')}${(_0xb7 % 1000).toString().padStart(3, '0')}`;
         const _0xb9 = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${_0xb3}&lon=${_0xb4}&zoom=18&addressdetails=1`;
         const _0xba = await fetch(_0xb9); const _0xbb = await _0xba.json();
         if(_0xbb && _0xbb.display_name) { document.getElementById('parcelAddress').innerText = _0xbb.display_name; document.getElementById('parcelOwner').innerText = `Owner: Verified Local Title (GIS Ref)`; document.getElementById('parcelAPN').innerText = `APN / Map No: ${_0xb8}`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: ${(Math.abs(_0xb3) % 2 + 0.35).toFixed(2)} AC`; } else { throw new Error("Address lookup failed"); }
-        document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; const _0xbc = document.getElementById('spcZoneSelect').value;
-        if(_0xbc !== "EPSG:4326") { const _0xbd = proj4('EPSG:4326', _0xbc, [_0xb4, _0xb3]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${_0xbd[1].toFixed(2)}', ${_0xbd[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
+        document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; 
+        let zone = document.getElementById('spcZoneSelect').value;
+        if (zone === "AUTO") zone = getAutoCRS(_0xb3, _0xb4);
+        if(zone !== "EPSG:4326") { const _0xbd = proj4('EPSG:4326', zone, [_0xb4, _0xb3]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${_0xbd[1].toFixed(2)}', ${_0xbd[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
         document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${_0xb3}/${_0xb4}`;
     } catch(_0xbe) {
         document.getElementById('parcelAddress').innerText = "County Parcel Reference"; document.getElementById('parcelAPN').innerText = `APN / Map No: 3120001001`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: 0.75 AC`; document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; document.getElementById('parcelSPC').innerText = `SPC: Computed via Proj4js`; document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${_0xb3}/${_0xb4}`;
@@ -1061,16 +1083,26 @@ function downloadFile(_0xc5, _0xc6, _0xc7 = 'text/plain') {
 
 window.exportCSV = function() {
     if(pinData.length === 0) { alert("No points to export."); return; }
-    const _0xcb = document.getElementById('spcZoneSelect').value; let _0xcc = "Point,Northing,Easting,Elevation,Description\n";
-    pinData.forEach(_0xcd => { let _0xce = proj4('EPSG:4326', _0xcb, [_0xcd.lng, _0xcd.lat]); _0xcc += `${_0xcd.id},${_0xce[1].toFixed(4)},${_0xce[0].toFixed(4)},0.00,${_0xcd.desc}\n`; });
+    let zone = document.getElementById('spcZoneSelect').value;
+    let _0xcc = "Point,Northing,Easting,Elevation,Description\n";
+    pinData.forEach(_0xcd => { 
+        let activeZone = zone;
+        if (activeZone === "AUTO") activeZone = getAutoCRS(_0xcd.lat, _0xcd.lng);
+        let _0xce = proj4('EPSG:4326', activeZone, [_0xcd.lng, _0xcd.lat]); 
+        _0xcc += `${_0xcd.id},${_0xce[1].toFixed(4)},${_0xce[0].toFixed(4)},0.00,${_0xcd.desc}\n`; 
+    });
     downloadFile(`Project_${activeProjectId}_PNEZD.csv`, _0xcc, 'text/csv');
 };
 
 window.exportDXF = function() {
     if(pinData.length === 0) { alert("No points to export."); return; }
-    const _0xcf = document.getElementById('spcZoneSelect').value; let _0xd0 = "0\nSECTION\n2\nENTITIES\n";
+    let zone = document.getElementById('spcZoneSelect').value;
+    let _0xd0 = "0\nSECTION\n2\nENTITIES\n";
     pinData.forEach(_0xd1 => { 
-        let _0xd2 = proj4('EPSG:4326', _0xcf, [_0xd1.lng, _0xd1.lat]); _0xd0 += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${_0xd2[0].toFixed(4)}\n20\n${_0xd2[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(_0xd2[0]+2).toFixed(4)}\n20\n${(_0xd2[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${_0xd1.id}-${_0xd1.desc}\n`; 
+        let activeZone = zone;
+        if (activeZone === "AUTO") activeZone = getAutoCRS(_0xd1.lat, _0xd1.lng);
+        let _0xd2 = proj4('EPSG:4326', activeZone, [_0xd1.lng, _0xd1.lat]); 
+        _0xd0 += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${_0xd2[0].toFixed(4)}\n20\n${_0xd2[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(_0xd2[0]+2).toFixed(4)}\n20\n${(_0xd2[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${_0xd1.id}-${_0xd1.desc}\n`; 
     });
     _0xd0 += "0\nENDSEC\n0\nEOF\n";
     downloadFile(`Project_${activeProjectId}.dxf`, _0xd0, 'application/dxf');
