@@ -1,3 +1,14 @@
+## Current Status & Capabilities
+
+Field HUD Pro is fully functional for all offline core features, calculations, and data management. You can immediately use it in the field for:
+- Point logging and epoch-averaging using standard mobile GPS
+- Importing and exporting standard CSV and DXF files
+- Executing COGO calculations (inverses, station/offset, curve geometry)
+- Managing CAD linework, point filters, and county GIS parcel lookups
+
+*Note: High-precision, centimeter-level RTK GPS functionality requires pairing an external GNSS receiver (such as Topcon or Trimble) and configuring the optional NMEA bridge.*
+
+
 # Field HUD: Pro Edition
 
 Field HUD Pro is a serverless, offline-capable Progressive Web App (PWA) designed to transition standard mobile devices and tablets into professional-grade land surveying data collectors. By utilizing client-side processing, this tool allows field crews to collect precise geospatial data, perform complex coordinate geometry (COGO) calculations, and manage computer-aided design (CAD) linework entirely offline from a standard web browser.
