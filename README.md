@@ -1,3 +1,5 @@
+link to the tools webpage here: https://ilearn88.github.io/Field-HUD/
+
 ## Current Status & Capabilities
 
 Field HUD Pro is fully functional for all offline core features, calculations, and data management. You can immediately use it in the field for:
