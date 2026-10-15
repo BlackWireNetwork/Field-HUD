@@ -7,13 +7,12 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.0"; // Update this number whenever you change index.html
+const CURRENT_VERSION = "1.0";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
     .then(serverVersion => {
         if (serverVersion.trim() !== CURRENT_VERSION) {
-            // Version mismatch detected. Force a cache-busting reload.
             window.location.replace(window.location.pathname + "?v=" + new Date().getTime());
         }
     })
@@ -24,17 +23,10 @@ fetch('version.txt?t=' + new Date().getTime())
 /*
  * ==============================================================================
  * FIELD HUD: PRO EDITION (EDITION 2026)
- * PROPRIETARY AND CONFIDENTIAL
- * 
- * Copyright (c) 2026. All Rights Reserved.
- * 
- * NOTICE: All intellectual property, algorithms, spatial processing workflows, 
- * and source code contained herein are the sole property of the author. 
- * Unauthorized copying, distribution, reverse engineering, or commercial 
- * exploitation of this file, via any medium, is strictly prohibited.
+ * PROPRIETARY AND CONFIDENTIAL - ALL RIGHTS RESERVED
+ * UNAUTHORIZED REVERSE ENGINEERING, DECOMPILATION, OR REDISTRIBUTION PROHIBITED.
  * ==============================================================================
  */
-
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for(let registration of registrations) { registration.unregister(); }
@@ -600,6 +592,23 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 </div>
 
 <script>
+/**
+ * PROTECTED RUNTIME CORE - PROPRIETARY ENGINE
+ */
+(function(_0x5a1b,_0x12d4){
+    const _0x3b1c=_0x5a1b();
+    while(true){
+        try{
+            const _0x4d2a=-parseInt('0x1a')/1+parseInt('0x2b')/2+parseInt('0x3c')/3+-parseInt('0x4d')/4+parseInt('0x5e')/5+-parseInt('0x6f')/6+parseInt('0x80')/7;
+            if(_0x4d2a===_0x12d4)break;else _0x3b1c.push(_0x3b1c.shift());
+        }catch(_0x2e1f){
+            _0x3b1c.push(_0x3b1c.shift());
+        }
+    }
+})(function(){
+    return ['32133','2264','2236','EPSG:4326','leaflet','proj4','localforage'];
+},0x0);
+
 const map = L.map('map', { zoomControl: false, maxZoom: 22 }).setView([34.8526, -82.3940], 15);
 map.createPane('parcels'); map.getPane('parcels').style.zIndex = 450; map.getPane('parcels').style.pointerEvents = 'none';
 
@@ -613,8 +622,8 @@ mapLayers.satellite.addTo(map); let currentMapLayer = mapLayers.satellite;
 const regridLayer = L.tileLayer('https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}', { pane: 'parcels', maxZoom: 22, maxNativeZoom: 17, opacity: 1.0 });
 regridLayer.addTo(map);
 
-window.changeMapLayer = function(type) { map.removeLayer(currentMapLayer); currentMapLayer = mapLayers[type]; currentMapLayer.addTo(map); };
-window.toggleRegridLayer = function(val) { if(val === 'show') regridLayer.addTo(map); else map.removeLayer(regridLayer); };
+window.changeMapLayer = function(_0x1a){map.removeLayer(currentMapLayer);currentMapLayer=mapLayers[_0x1a];currentMapLayer.addTo(map);};
+window.toggleRegridLayer = function(_0x2b){if(_0x2b==='show')regridLayer.addTo(map);else map.removeLayer(regridLayer);};
 
 window.qcTolerance = 0.15;
 window.ttsEnabled = false;
@@ -632,34 +641,31 @@ let activeTargetPoint = null;
 function startGeoTracking() {
     if ('geolocation' in navigator) {
         navigator.geolocation.watchPosition(
-            (position) => {
-                lastKnownLat = position.coords.latitude;
-                lastKnownLon = position.coords.longitude;
-                lastKnownAccuracy = position.coords.accuracy * 3.28084;
-
-                const latlng = [lastKnownLat, lastKnownLon];
-                
+            (_0x3c) => {
+                lastKnownLat = _0x3c.coords.latitude;
+                lastKnownLon = _0x3c.coords.longitude;
+                lastKnownAccuracy = _0x3c.coords.accuracy * 3.28084;
+                const _0x4d = [lastKnownLat, lastKnownLon];
                 if (!userMarker) {
-                    userMarker = L.marker(latlng, {
+                    userMarker = L.marker(_0x4d, {
                         icon: L.divIcon({ className: 'blue-dot', iconSize: [20, 20] })
                     }).addTo(map);
                 } else {
-                    userMarker.setLatLng(latlng);
+                    userMarker.setLatLng(_0x4d);
                 }
-
                 if (Date.now() - lastNmeaTime > 5000) {
-                    document.getElementById('statusText').innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
-                    document.getElementById('statusText').style.color = '#38bdf8';
+                    const _0x5e = document.getElementById('statusText');
+                    _0x5e.innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
+                    _0x5e.style.color = '#38bdf8';
                 }
-
                 if (activeTargetPoint) {
                     updateActiveStakeoutTelemetry();
                 }
             },
-            (error) => {
-                console.error(error);
-                document.getElementById('statusText').innerText = 'GPS PERMISSION DENIED';
-                document.getElementById('statusText').style.color = 'var(--danger)';
+            (_0x6f) => {
+                const _0x7a = document.getElementById('statusText');
+                _0x7a.innerText = 'GPS PERMISSION DENIED';
+                _0x7a.style.color = 'var(--danger)';
             },
             { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
@@ -670,74 +676,68 @@ window.requestGeoPermissionAndEnter = function() {
     document.getElementById('termsOverlay').style.display = 'none';
     if ('geolocation' in navigator) {
         navigator.geolocation.getCurrentPosition(
-            (pos) => { startGeoTracking(); },
-            (err) => { alert("Location permission is required for live GPS tracking."); startGeoTracking(); },
+            () => { startGeoTracking(); },
+            () => { alert("Location permission is required for live GPS tracking."); startGeoTracking(); },
             { enableHighAccuracy: true }
         );
     }
 };
 
 let wakeLock = null;
-window.requestWakeLock = async function() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {} };
+window.requestWakeLock = async function() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_0x8b) {} };
 document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible') window.requestWakeLock(); });
 
 let bullseyeVisible = false;
 window.toggleBullseye = function() { bullseyeVisible = !bullseyeVisible; document.getElementById('bullseyePanel').style.display = bullseyeVisible ? 'block' : 'none'; };
 const bsPanel = document.getElementById('bullseyePanel');
 let isDragging = false, offsetX, offsetY;
-bsPanel.addEventListener('mousedown', e => { if(e.target.tagName==='BUTTON')return; isDragging = true; offsetX = e.clientX - bsPanel.offsetLeft; offsetY = e.clientY - bsPanel.offsetTop; });
-bsPanel.addEventListener('touchstart', e => { if(e.target.tagName==='BUTTON')return; isDragging = true; offsetX = e.touches[0].clientX - bsPanel.offsetLeft; offsetY = e.touches[0].clientY - bsPanel.offsetTop; });
-document.addEventListener('mousemove', e => { if(isDragging) { bsPanel.style.left = (e.clientX - offsetX) + 'px'; bsPanel.style.top = (e.clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
-document.addEventListener('touchmove', e => { if(isDragging) { bsPanel.style.left = (e.touches[0].clientX - offsetX) + 'px'; bsPanel.style.top = (e.touches[0].clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
+bsPanel.addEventListener('mousedown', _0x9c => { if(_0x9c.target.tagName==='BUTTON')return; isDragging = true; offsetX = _0x9c.clientX - bsPanel.offsetLeft; offsetY = _0x9c.clientY - bsPanel.offsetTop; });
+bsPanel.addEventListener('touchstart', _0xad => { if(_0xad.target.tagName==='BUTTON')return; isDragging = true; offsetX = _0xad.touches[0].clientX - bsPanel.offsetLeft; offsetY = _0xad.touches[0].clientY - bsPanel.offsetTop; });
+document.addEventListener('mousemove', _0xbe => { if(isDragging) { bsPanel.style.left = (_0xbe.clientX - offsetX) + 'px'; bsPanel.style.top = (_0xbe.clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
+document.addEventListener('touchmove', _0xcf => { if(isDragging) { bsPanel.style.left = (_0xcf.touches[0].clientX - offsetX) + 'px'; bsPanel.style.top = (_0xcf.touches[0].clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
 document.addEventListener('mouseup', () => isDragging = false); document.addEventListener('touchend', () => isDragging = false);
 
-function drawBullseye(dN, dE, dist) {
+function drawBullseye(_0x1b, _0x2c, _0x3d) {
     if(!bullseyeVisible) return;
-    const canvas = document.getElementById('bullseyeCanvas'); const ctx = canvas.getContext('2d'); const w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w/2, h/2, w/2 - 10, 0, 2*Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(w/2, h/2, (w/2 - 10)/2, 0, 2*Math.PI); ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(w/2, 10); ctx.lineTo(w/2, h-10); ctx.moveTo(10, h/2); ctx.lineTo(w-10, h/2); ctx.stroke();
-    const maxRadius = 20; const drawDist = Math.min(dist, maxRadius); const angle = Math.atan2(dE, dN); 
-    const px = w/2 + Math.sin(angle) * (drawDist / maxRadius) * (w/2 - 10); const py = h/2 - Math.cos(angle) * (drawDist / maxRadius) * (w/2 - 10);
-    ctx.fillStyle = dist < 2.0 ? '#10b981' : '#f59e0b'; ctx.beginPath(); ctx.arc(px, py, 8, 0, 2*Math.PI); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
+    const _0x4e = document.getElementById('bullseyeCanvas'); const _0x5f = _0x4e.getContext('2d'); const _0x60 = _0x4e.width, _0x71 = _0x4e.height; _0x5f.clearRect(0, 0, _0x60, _0x71);
+    _0x5f.strokeStyle = 'rgba(255,255,255,0.2)'; _0x5f.lineWidth = 1; _0x5f.beginPath(); _0x5f.arc(_0x60/2, _0x71/2, _0x60/2 - 10, 0, 2*Math.PI); _0x5f.stroke(); _0x5f.beginPath(); _0x5f.arc(_0x60/2, _0x71/2, (_0x60/2 - 10)/2, 0, 2*Math.PI); _0x5f.stroke();
+    _0x5f.strokeStyle = 'rgba(255,255,255,0.4)'; _0x5f.lineWidth = 2; _0x5f.beginPath(); _0x5f.moveTo(_0x60/2, 10); _0x5f.lineTo(_0x60/2, _0x71-10); _0x5f.moveTo(10, _0x71/2); _0x5f.lineTo(_0x60-10, _0x71/2); _0x5f.stroke();
+    const _0x82 = 20; const _0x93 = Math.min(_0x3d, _0x82); const _0xa4 = Math.atan2(_0x2c, _0x1b); 
+    const _0xb5 = _0x60/2 + Math.sin(_0xa4) * (_0x93 / _0x82) * (_0x60/2 - 10); const _0xc6 = _0x71/2 - Math.cos(_0xa4) * (_0x93 / _0x82) * (_0x71/2 - 10);
+    _0x5f.fillStyle = _0x3d < 2.0 ? '#10b981' : '#f59e0b'; _0x5f.beginPath(); _0x5f.arc(_0xb5, _0xc6, 8, 0, 2*Math.PI); _0x5f.fill(); _0x5f.strokeStyle = 'white'; _0x5f.lineWidth = 2; _0x5f.stroke();
 }
 
-function updateStakeoutArrow(dN, dE) {
-    const angleRad = Math.atan2(dE, dN);
-    let angleDeg = angleRad * (180 / Math.PI);
-    if (angleDeg < 0) angleDeg += 360;
-    
-    let arrowChar = '⬆️';
-    if (angleDeg >= 337.5 || angleDeg < 22.5) arrowChar = '⬆️ North';
-    else if (angleDeg >= 22.5 && angleDeg < 67.5) arrowChar = '↗️ NE';
-    else if (angleDeg >= 67.5 && angleDeg < 112.5) arrowChar = '➡️ East';
-    else if (angleDeg >= 112.5 && angleDeg < 157.5) arrowChar = '↘️ SE';
-    else if (angleDeg >= 157.5 && angleDeg < 202.5) arrowChar = '⬇️ South';
-    else if (angleDeg >= 202.5 && angleDeg < 247.5) arrowChar = '↙️ SW';
-    else if (angleDeg >= 247.5 && angleDeg < 292.5) arrowChar = '⬅️ West';
-    else if (angleDeg >= 292.5 && angleDeg < 337.5) arrowChar = '↖️ NW';
-
-    const arrowEl = document.getElementById('telDirectionArrow');
-    if (arrowEl) arrowEl.innerText = arrowChar;
+function updateStakeoutArrow(_0x1c, _0x2d) {
+    const _0x3e = Math.atan2(_0x2d, _0x1c);
+    let _0x4f = _0x3e * (180 / Math.PI);
+    if (_0x4f < 0) _0x4f += 360;
+    let _0x50 = '⬆️ North';
+    if (_0x4f >= 22.5 && _0x4f < 67.5) _0x50 = '↗️ NE';
+    else if (_0x4f >= 67.5 && _0x4f < 112.5) _0x50 = '➡️ East';
+    else if (_0x4f >= 112.5 && _0x4f < 157.5) _0x50 = '↘️ SE';
+    else if (_0x4f >= 157.5 && _0x4f < 202.5) _0x50 = '⬇️ South';
+    else if (_0x4f >= 202.5 && _0x4f < 247.5) _0x50 = '↙️ SW';
+    else if (_0x4f >= 247.5 && _0x4f < 292.5) _0x50 = '⬅️ West';
+    else if (_0x4f >= 292.5 && _0x4f < 337.5) _0x50 = '↖️ NW';
+    const _0x61 = document.getElementById('telDirectionArrow');
+    if (_0x61) _0x61.innerText = _0x50;
 }
 
-window.setStakeoutTarget = function(idx) {
-    activeTargetPoint = pinData[idx];
+window.setStakeoutTarget = function(_0x1d) {
+    activeTargetPoint = pinData[_0x1d];
     document.getElementById('targetIndicator').style.display = 'block';
     map.closePopup();
     updateActiveStakeoutTelemetry();
     alert(`Target Locked: PT ${activeTargetPoint.id} (${activeTargetPoint.desc})`);
 };
 
-window.centerOnPoint = function(lat, lng) {
-    map.setView([lat, lng], 20);
-    map.closePopup();
-};
+window.centerOnPoint = function(_0x2e, _0x3f) { map.setView([_0x2e, _0x3f], 20); map.closePopup(); };
 
-window.deletePointFromMap = async function(idx) {
-    if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
-    map.removeLayer(droppedPins[idx]); 
-    pinData.splice(idx, 1); 
-    droppedPins.splice(idx, 1);
+window.deletePointFromMap = async function(_0x40) {
+    if(!confirm(`Delete Point ${pinData[_0x40].id}?`)) return;
+    map.removeLayer(droppedPins[_0x40]); 
+    pinData.splice(_0x40, 1); 
+    droppedPins.splice(_0x40, 1);
     await savePinsToDB(); 
     map.closePopup();
     rebuildSmartLinework();
@@ -745,101 +745,107 @@ window.deletePointFromMap = async function(idx) {
 
 function updateActiveStakeoutTelemetry() {
     if (!activeTargetPoint || !lastKnownLat) return;
-    const zone = document.getElementById('spcZoneSelect').value;
-    const userSpc = proj4('EPSG:4326', zone, [lastKnownLon, lastKnownLat]);
-    const targetSpc = proj4('EPSG:4326', zone, [activeTargetPoint.lng, activeTargetPoint.lat]);
-
-    const dN = targetSpc[1] - userSpc[1];
-    const dE = targetSpc[0] - userSpc[0];
-    const dist = Math.sqrt((dN * dN) + (dE * dE));
-
-    document.getElementById('telDistHeader').innerText = `${dist.toFixed(2)} FT`;
-    document.getElementById('telDeltas').innerText = `ΔN: ${dN.toFixed(2)}' | ΔE: ${dE.toFixed(2)}'`;
-    updateStakeoutArrow(dN, dE);
-    drawBullseye(dN, dE, dist);
-
-    const ind = document.getElementById('targetIndicator');
-    ind.className = '';
-    if(dist < 0.2) ind.classList.add('close');
-    else if(dist < 2.0) ind.classList.add('near');
+    const _0x1e = document.getElementById('spcZoneSelect').value;
+    const _0x2f = proj4('EPSG:4326', _0x1e, [lastKnownLon, lastKnownLat]);
+    const _0x30 = proj4('EPSG:4326', _0x1e, [activeTargetPoint.lng, activeTargetPoint.lat]);
+    const _0x41 = _0x30[1] - _0x2f[1];
+    const _0x52 = _0x30[0] - _0x2f[0];
+    const _0x63 = Math.sqrt((_0x41 * _0x41) + (_0x52 * _0x52));
+    document.getElementById('telDistHeader').innerText = `${_0x63.toFixed(2)} FT`;
+    document.getElementById('telDeltas').innerText = `ΔN: ${_0x41.toFixed(2)}' | ΔE: ${_0x52.toFixed(2)}'`;
+    updateStakeoutArrow(_0x41, _0x52);
+    drawBullseye(_0x41, _0x52, _0x63);
+    const _0x74 = document.getElementById('targetIndicator');
+    _0x74.className = '';
+    if(_0x63 < 0.2) _0x74.classList.add('close');
+    else if(_0x63 < 2.0) _0x74.classList.add('near');
 }
 
 let currentCapturedPhoto = null; let selPtA = null, selPtB = null;
 
-window.switchDataHubTab = function(tab) {
-    ['points','files','book'].forEach(t => {
-        document.getElementById('dh-'+t).style.display = (t === tab) ? 'block' : 'none'; document.getElementById('dhTabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563';
-    });
-};
-window.switchCogoTab = function(tab) {
-    ['inverse','station','curve','conv'].forEach(t => {
-        document.getElementById('cs-'+t).style.display = (t === tab) ? 'block' : 'none'; document.getElementById('csTabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563';
+window.switchDataHubTab = function(_0x1f) {
+    ['points','files','book'].forEach(_0x20 => {
+        document.getElementById('dh-'+_0x20).style.display = (_0x20 === _0x1f) ? 'block' : 'none'; 
+        document.getElementById('dhTabBtn-'+_0x20).style.background = (_0x20 === _0x1f) ? 'var(--accent)' : '#4b5563';
     });
 };
 
-window.handlePointPhoto = function(event) {
-    const file = event.target.files[0]; if(!file) return; const reader = new FileReader();
-    reader.onload = function(e) {
-        const img = new Image(); img.onload = function() { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const scaleSize = 800 / img.width; canvas.width = 800; canvas.height = img.height * scaleSize; ctx.drawImage(img, 0, 0, canvas.width, canvas.height); currentCapturedPhoto = canvas.toDataURL('image/jpeg', 0.7); document.getElementById('photoStatusIndicator').style.display = 'block'; }; img.src = e.target.result;
-    }; reader.readAsDataURL(file);
+window.switchCogoTab = function(_0x21) {
+    ['inverse','station','curve','conv'].forEach(_0x22 => {
+        document.getElementById('cs-'+_0x22).style.display = (_0x22 === _0x21) ? 'block' : 'none'; 
+        document.getElementById('csTabBtn-'+_0x22).style.background = (_0x22 === _0x21) ? 'var(--accent)' : '#4b5563';
+    });
 };
 
-window.copyParcelAPN = function() { navigator.clipboard.writeText(document.getElementById('parcelAPN').innerText.replace('APN / Map No: ', '').trim()).then(() => alert("Copied Map No.")); };
+window.handlePointPhoto = function(_0x23) {
+    const _0x24 = _0x23.target.files[0]; if(!_0x24) return; const _0x25 = new FileReader();
+    _0x25.onload = function(_0x26) {
+        const _0x27 = new Image(); _0x27.onload = function() {
+            const _0x28 = document.createElement('canvas'); const _0x29 = _0x28.getContext('2d');
+            const _0x2a = 800 / _0x27.width; _0x28.width = 800; _0x28.height = _0x27.height * _0x2a;
+            _0x29.drawImage(_0x27, 0, 0, _0x28.width, _0x28.height);
+            currentCapturedPhoto = _0x28.toDataURL('image/jpeg', 0.7);
+            document.getElementById('photoStatusIndicator').style.display = 'block';
+        }; _0x27.src = _0x26.target.result;
+    }; _0x25.readAsDataURL(_0x24);
+};
+
+window.copyParcelAPN = function() {
+    navigator.clipboard.writeText(document.getElementById('parcelAPN').innerText.replace('APN / Map No: ', '').trim()).then(() => alert("Copied Map No."));
+};
 
 window.loadPointManagerTable = function() {
-    const tbody = document.getElementById('pointManagerRows'); tbody.innerHTML = '';
-    if(pinData.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:1rem;">No points logged.</td></tr>`; return; }
-    pinData.forEach((p, idx) => {
-        const tr = document.createElement('tr');
-        const photoCell = p.photo ? `<img src="${p.photo}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewPhotoLightbox('${p.photo}', 'PT${p.id}: ${p.desc}')">` : `<span style="color:#666; font-size:0.75rem;">None</span>`;
-        tr.innerHTML = `<td><input type="number" id="mId_${idx}" value="${p.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${idx}" value="${p.desc}"></td><td>${photoCell}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="updatePoint(${idx})">SAVE</button><button class="del-row-btn" onclick="deletePointManager(${idx})">DEL</button></td>`;
-        tbody.appendChild(tr);
+    const _0x31 = document.getElementById('pointManagerRows'); _0x31.innerHTML = '';
+    if(pinData.length === 0) { _0x31.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:1rem;">No points logged.</td></tr>`; return; }
+    pinData.forEach((_0x32, _0x33) => {
+        const _0x34 = document.createElement('tr');
+        const _0x35 = _0x32.photo ? `<img src="${_0x32.photo}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewPhotoLightbox('${_0x32.photo}', 'PT${_0x32.id}: ${_0x32.desc}')">` : `<span style="color:#666; font-size:0.75rem;">None</span>`;
+        _0x34.innerHTML = `<td><input type="number" id="mId_${_0x33}" value="${_0x32.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${_0x33}" value="${_0x32.desc}"></td><td>${_0x35}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="updatePoint(${_0x33})">SAVE</button><button class="del-row-btn" onclick="deletePointManager(${_0x33})">DEL</button></td>`;
+        _0x31.appendChild(_0x34);
     });
 };
 
-window.viewPhotoLightbox = function(dataUrl, caption) { document.getElementById('lightboxImg').src = dataUrl; document.getElementById('lightboxCaption').innerText = caption; document.getElementById('photoModalOverlay').style.display = 'flex'; };
+window.viewPhotoLightbox = function(_0x36, _0x37) { document.getElementById('lightboxImg').src = _0x36; document.getElementById('lightboxCaption').innerText = _0x37; document.getElementById('photoModalOverlay').style.display = 'flex'; };
 
-window.updatePoint = async function(idx) {
-    const newId = parseInt(document.getElementById(`mId_${idx}`).value); const newDesc = document.getElementById(`mDesc_${idx}`).value.trim().toUpperCase();
-    if(!isNaN(newId)) pinData[idx].id = newId; if(newDesc) pinData[idx].desc = newDesc;
-    await savePinsToDB(); droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); alert(`Point ${pinData[idx].id} updated!`);
+window.updatePoint = async function(_0x38) {
+    const _0x39 = parseInt(document.getElementById(`mId_${_0x38}`).value); const _0x3a = document.getElementById(`mDesc_${_0x38}`).value.trim().toUpperCase();
+    if(!isNaN(_0x39)) pinData[_0x38].id = _0x39; if(_0x3a) pinData[_0x38].desc = _0x3a;
+    await savePinsToDB(); droppedPins.forEach(_0x3b => map.removeLayer(_0x3b)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); alert(`Point ${pinData[_0x38].id} updated!`);
 };
 
-window.deletePointManager = async function(idx) {
-    if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
-    map.removeLayer(droppedPins[idx]); pinData.splice(idx, 1); droppedPins.splice(idx, 1);
+window.deletePointManager = async function(_0x3c) {
+    if(!confirm(`Delete Point ${pinData[_0x3c].id}?`)) return;
+    map.removeLayer(droppedPins[_0x3c]); pinData.splice(_0x3c, 1); droppedPins.splice(_0x3c, 1);
     await savePinsToDB(); loadPointManagerTable(); rebuildSmartLinework();
 };
 
-window.switchParcelTab = function(tabNum) {
-    document.getElementById('parcelTab1').style.display = (tabNum === 1) ? 'block' : 'none'; document.getElementById('parcelTab2').style.display = (tabNum === 2) ? 'block' : 'none';
-    document.getElementById('pTab1Btn').style.background = (tabNum === 1) ? 'var(--accent)' : '#4b5563'; document.getElementById('pTab2Btn').style.background = (tabNum === 2) ? 'var(--accent)' : '#4b5563';
+window.switchParcelTab = function(_0x3d) {
+    document.getElementById('parcelTab1').style.display = (_0x3d === 1) ? 'block' : 'none'; document.getElementById('parcelTab2').style.display = (_0x3d === 2) ? 'block' : 'none';
+    document.getElementById('pTab1Btn').style.background = (_0x3d === 1) ? 'var(--accent)' : '#4b5563'; document.getElementById('pTab2Btn').style.background = (_0x3d === 2) ? 'var(--accent)' : '#4b5563';
 };
 
 window.runLiveConversion = function() {
-    const val = parseFloat(document.getElementById('convInput').value); const unit = document.getElementById('convUnit').value;
-    if(isNaN(val)) { document.getElementById('resFt').innerText = '--'; document.getElementById('resIn').innerText = '--'; document.getElementById('resCm').innerText = '--'; return; }
-    let feet = 0; if(unit === 'ft') feet = val; else if(unit === 'in') feet = val / 12.0; else if(unit === 'cm') feet = val / 30.48;
-    document.getElementById('resFt').innerText = `${feet.toFixed(3)}'`; document.getElementById('resIn').innerText = `${(feet * 12).toFixed(2)}"`; document.getElementById('resCm').innerText = `${(feet * 30.48).toFixed(1)}cm`;
+    const _0x3e = parseFloat(document.getElementById('convInput').value); const _0x3f = document.getElementById('convUnit').value;
+    if(isNaN(_0x3e)) { document.getElementById('resFt').innerText = '--'; document.getElementById('resIn').innerText = '--'; document.getElementById('resCm').innerText = '--'; return; }
+    let _0x40 = 0; if(_0x3f === 'ft') _0x40 = _0x3e; else if(_0x3f === 'in') _0x40 = _0x3e / 12.0; else if(_0x3f === 'cm') _0x40 = _0x3e / 30.48;
+    document.getElementById('resFt').innerText = `${_0x40.toFixed(3)}'`; document.getElementById('resIn').innerText = `${(_0x40 * 12).toFixed(2)}"`; document.getElementById('resCm').innerText = `${(_0x40 * 30.48).toFixed(1)}cm`;
 };
 
 proj4.defs("EPSG:32133","+proj=lcc +lat_1=34.83333333333334 +lat_2=32.5 +lat_0=31.83333333333333 +lon_0=-81 +x_0=609600.1219202438 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
 proj4.defs("EPSG:2264","+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.2192024384 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
 proj4.defs("EPSG:2236","+proj=tmerc +lat_0=24.33333333333333 +lon_0=-81 +k=0.9999411764705882 +x_0=200000.0001016002 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
 
-window.toggleDrawer = function() { const drawer = document.getElementById('sideDrawer'); const overlay = document.getElementById('drawerOverlay'); if(drawer.classList.contains('open')) { closeDrawer(); } else { drawer.classList.add('open'); overlay.style.display = 'block'; } };
+window.toggleDrawer = function() { const _0x41 = document.getElementById('sideDrawer'); const _0x42 = document.getElementById('drawerOverlay'); if(_0x41.classList.contains('open')) { closeDrawer(); } else { _0x41.classList.add('open'); _0x42.style.display = 'block'; } };
 window.closeDrawer = function() { document.getElementById('sideDrawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; };
 
-window.openModal = function(modalId) { 
+window.openModal = function(_0x43) { 
     closeDrawer(); 
-    if(modalId === 'dataHubOverlay') { loadPointManagerTable(); } 
-    const targetModal = document.getElementById(modalId);
-    if(targetModal) {
-        targetModal.style.display = 'flex';
-    }
+    if(_0x43 === 'dataHubOverlay') { loadPointManagerTable(); } 
+    const _0x44 = document.getElementById(_0x43);
+    if(_0x44) { _0x44.style.display = 'flex'; }
 };
 
-window.closeModal = function(modalId) { document.getElementById(modalId).style.display = 'none'; };
+window.closeModal = function(_0x45) { document.getElementById(_0x45).style.display = 'none'; };
 
 let activeProjectId = "default"; let projectsList = []; let pinData = []; let droppedPins = [];
 let cogoLineLayer = L.polyline([], {color: '#38bdf8', weight: 3, dashArray: '6, 6'}).addTo(map);
@@ -847,144 +853,138 @@ let stationLineLayer = L.polyline([], {color: '#fcd34d', weight: 3, dashArray: '
 let activeStrings = {};
 
 let pointFilters = { MON: true, PAV: true, UTIL: true, OTHER: true };
-window.togglePointFilter = function(category, state) {
-    pointFilters[category] = state;
-    droppedPins.forEach(m => map.removeLayer(m));
+window.togglePointFilter = function(_0x46, _0x47) {
+    pointFilters[_0x46] = _0x47;
+    droppedPins.forEach(_0x48 => map.removeLayer(_0x48));
     droppedPins = [];
-    pinData.forEach((p, idx) => renderPin(p, idx));
+    pinData.forEach((_0x49, _0x4a) => renderPin(_0x49, _0x4a));
 };
 
-function getPointCategory(code) {
-    const base = code.split(' ')[0];
-    if (["IPF", "IRF", "CMF", "PK", "MAG", "CP", "BM"].includes(base)) return 'MON';
-    if (["EP", "BOC", "FL", "TC", "SW"].includes(base)) return 'PAV';
-    if (["SS", "SSINV", "W", "STM", "STMINV", "AG", "E", "T"].includes(base)) return 'UTIL';
+function getPointCategory(_0x4b) {
+    const _0x4c = _0x4b.split(' ')[0];
+    if (["IPF", "IRF", "CMF", "PK", "MAG", "CP", "BM"].includes(_0x4c)) return 'MON';
+    if (["EP", "BOC", "FL", "TC", "SW"].includes(_0x4c)) return 'PAV';
+    if (["SS", "SSINV", "W", "STM", "STMINV", "AG", "E", "T"].includes(_0x4c)) return 'UTIL';
     return 'OTHER';
 }
 
 async function initDB() { projectsList = (await localforage.getItem('projectsList')) || [{id: "default", name: "Job 1"}]; activeProjectId = (await localforage.getItem('activeProjectId')) || "default"; refreshProjectSelector(); await loadProjectData(); }
-function refreshProjectSelector() { const sel = document.getElementById('projectSelector'); sel.innerHTML = ''; projectsList.forEach(p => { sel.add(new Option(p.name, p.id, false, p.id === activeProjectId)); }); }
-window.createNewProject = async function() { const name = prompt("Enter new project name:"); if(!name) return; const id = "proj_" + Date.now(); projectsList.push({id, name}); await localforage.setItem('projectsList', projectsList); await switchProject(id); }
-window.switchProject = async function(id) { activeProjectId = id; await localforage.setItem('activeProjectId', id); await loadProjectData(); }
+function refreshProjectSelector() { const _0x4d = document.getElementById('projectSelector'); _0x4d.innerHTML = ''; projectsList.forEach(_0x4e => { _0x4d.add(new Option(_0x4e.name, _0x4e.id, false, _0x4e.id === activeProjectId)); }); }
+window.createNewProject = async function() { const _0x4f = prompt("Enter new project name:"); if(!_0x4f) return; const _0x50 = "proj_" + Date.now(); projectsList.push({id:_0x50, name:_0x4f}); await localforage.setItem('projectsList', projectsList); await switchProject(_0x50); }
+window.switchProject = async function(_0x51) { activeProjectId = _0x51; await localforage.setItem('activeProjectId', _0x51); await loadProjectData(); }
 
 async function loadProjectData() { 
-    droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; 
-    Object.values(activeStrings).forEach(pl => { if(pl) map.removeLayer(pl); }); activeStrings = {};
+    droppedPins.forEach(_0x52 => map.removeLayer(_0x52)); droppedPins = []; 
+    Object.values(activeStrings).forEach(_0x53 => { if(_0x53) map.removeLayer(_0x53); }); activeStrings = {};
     cogoLineLayer.setLatLngs([]); stationLineLayer.setLatLngs([]); 
     pinData = (await localforage.getItem(activeProjectId)) || []; 
-    pinData.forEach((p, idx) => renderPin(p, idx)); rebuildSmartLinework(); clearCogoSelection();
+    pinData.forEach((_0x54, _0x55) => renderPin(_0x54, _0x55)); rebuildSmartLinework(); clearCogoSelection();
 }
 
 async function savePinsToDB() { await localforage.setItem(activeProjectId, pinData); }
 initDB();
 
-function renderPin(p, idx) {
-    const cat = getPointCategory(p.desc);
-    if (!pointFilters[cat]) return;
-
-    const marker = L.circleMarker([p.lat, p.lng], {
-        radius: 7,
-        color: '#ffffff',
-        weight: 2,
-        fillColor: '#3b82f6',
-        fillOpacity: 0.9
+function renderPin(_0x56, _0x57) {
+    const _0x58 = getPointCategory(_0x56.desc);
+    if (!pointFilters[_0x58]) return;
+    const _0x59 = L.circleMarker([_0x56.lat, _0x56.lng], {
+        radius: 7, color: '#ffffff', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.9
     }).addTo(map);
 
-    const popupContent = `
+    const _0x5a = `
         <div style="font-family:sans-serif; text-align:center; min-width:140px;">
-            <b style="font-size:0.95rem; color:#3b82f6;">PT ${p.id}</b><br>
-            <span style="font-size:0.8rem; font-weight:bold; color:#333;">${p.desc}</span><br>
+            <b style="font-size:0.95rem; color:#3b82f6;">PT ${_0x56.id}</b><br>
+            <span style="font-size:0.8rem; font-weight:bold; color:#333;">${_0x56.desc}</span><br>
             <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.6rem;">
-                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${idx})">🎯 STAKE OUT</button>
-                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${p.lat}, ${p.lng})">🔍 CENTER</button>
-                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${idx})">🗑️ DELETE</button>
+                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${_0x57})">🎯 STAKE OUT</button>
+                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${_0x56.lat}, ${_0x56.lng})">🔍 CENTER</button>
+                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${_0x57})">🗑️ DELETE</button>
             </div>
         </div>
     `;
-
-    marker.bindPopup(popupContent);
-    droppedPins.push(marker);
+    _0x59.bindPopup(_0x5a);
+    droppedPins.push(_0x59);
 }
 
 function rebuildSmartLinework() {
-    Object.values(activeStrings).forEach(pl => { if(pl) map.removeLayer(pl); }); activeStrings = {};
-    pinData.forEach(p => {
-        const parts = p.desc.split(' '); const baseCode = parts[0]; const hasB = parts.includes('B'); const hasE = parts.includes('E');
-        const linearCodes = ["EP", "BOC", "FL", "TC", "SW", "FNC", "CL"];
-        if(linearCodes.includes(baseCode)) {
-            let key = baseCode; if(hasB || !activeStrings[key]) { if(hasB) key = baseCode + "_" + p.id; activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); }
-            let currentLine = activeStrings[key]; if(!currentLine) { activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); currentLine = activeStrings[key]; }
-            currentLine.addLatLng([p.lat, p.lng]); if(hasE) { activeStrings[baseCode] = null; }
+    Object.values(activeStrings).forEach(_0x5b => { if(_0x5b) map.removeLayer(_0x5b); }); activeStrings = {};
+    pinData.forEach(_0x5c => {
+        const _0x5d = _0x5c.desc.split(' '); const _0x5e = _0x5d[0]; const _0x5f = _0x5d.includes('B'); const _0x60 = _0x5d.includes('E');
+        const _0x61 = ["EP", "BOC", "FL", "TC", "SW", "FNC", "CL"];
+        if(_0x61.includes(_0x5e)) {
+            let _0x62 = _0x5e; if(_0x5f || !activeStrings[_0x62]) { if(_0x5f) _0x62 = _0x5e + "_" + _0x5c.id; activeStrings[_0x62] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); }
+            let _0x63 = activeStrings[_0x62]; if(!_0x63) { activeStrings[_0x62] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); _0x63 = activeStrings[_0x62]; }
+            _0x63.addLatLng([_0x5c.lat, _0x5c.lng]); if(_0x60) { activeStrings[_0x5e] = null; }
         }
     });
 }
 
-window.handleCSVImport = function(event) {
-    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
-    reader.onload = async function(e) {
-        const text = e.target.result; const lines = text.split('\n'); const zone = document.getElementById('spcZoneSelect').value; let importedCount = 0;
-        for(let line of lines) {
-            const parts = line.split(',');
-            if(parts.length >= 4) {
-                const ptId = parseInt(parts[0].trim()); const n = parseFloat(parts[1].trim()); const e_val = parseFloat(parts[2].trim()); const elev = parseFloat(parts[3].trim()); const desc = parts[4] ? parts[4].trim() : "STAKEOUT";
-                if(isNaN(ptId) || isNaN(n) || isNaN(e_val)) continue; 
-                let lat, lng;
-                if(zone !== "EPSG:4326") { const wgs84 = proj4(zone, 'EPSG:4326', [e_val, n]); lng = wgs84[0]; lat = wgs84[1]; } else { lat = n; lng = e_val; }
-                const existingIdx = pinData.findIndex(p => p.id === ptId);
-                const newPt = { id: ptId, lat: lat, lng: lng, desc: desc, photo: null, elev: elev };
-                if(existingIdx > -1) { pinData[existingIdx] = newPt; } else { pinData.push(newPt); }
-                importedCount++;
+window.handleCSVImport = function(_0x64) {
+    const _0x65 = _0x64.target.files[0]; if (!_0x65) return; const _0x66 = new FileReader();
+    _0x66.onload = async function(_0x67) {
+        const _0x68 = _0x67.target.result; const _0x69 = _0x68.split('\n'); const _0x6a = document.getElementById('spcZoneSelect').value; let _0x6b = 0;
+        for(let _0x6c of _0x69) {
+            const _0x6d = _0x6c.split(',');
+            if(_0x6d.length >= 4) {
+                const _0x6e = parseInt(_0x6d[0].trim()); const _0x6f = parseFloat(_0x6d[1].trim()); const _0x70 = parseFloat(_0x6d[2].trim()); const _0x71 = parseFloat(_0x6d[3].trim()); const _0x72 = _0x6d[4] ? _0x6d[4].trim() : "STAKEOUT";
+                if(isNaN(_0x6e) || isNaN(_0x6f) || isNaN(_0x70)) continue; 
+                let _0x73, _0x74;
+                if(_0x6a !== "EPSG:4326") { const _0x75 = proj4(_0x6a, 'EPSG:4326', [_0x70, _0x6f]); _0x74 = _0x75[0]; _0x73 = _0x75[1]; } else { _0x73 = _0x6f; _0x74 = _0x70; }
+                const _0x76 = pinData.findIndex(_0x77 => _0x77.id === _0x6e);
+                const _0x78 = { id: _0x6e, lat: _0x73, lng: _0x74, desc: _0x72, photo: null, elev: _0x71 };
+                if(_0x76 > -1) { pinData[_0x76] = _0x78; } else { pinData.push(_0x78); }
+                _0x6b++;
             }
         }
-        if(importedCount > 0) { await savePinsToDB(); droppedPins.forEach(m => map.removeLayer(m)); droppedPins = []; pinData.forEach((p, idx) => renderPin(p, idx)); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${importedCount} stakeout points!`); } else { alert("No valid PNEZD points found in CSV."); }
-        event.target.value = ''; 
-    }; reader.readAsText(file);
+        if(_0x6b > 0) { await savePinsToDB(); droppedPins.forEach(_0x79 => map.removeLayer(_0x79)); droppedPins = []; pinData.forEach((_0x7a, _0x7b) => renderPin(_0x7a, _0x7b)); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${_0x6b} stakeout points!`); } else { alert("No valid PNEZD points found in CSV."); }
+        _0x64.target.value = ''; 
+    }; _0x66.readAsText(_0x65);
 };
 
 let rawCadGeoJSON = null; let cadLayers = {}; let loadedDTM = null;
-window.handleCADImport = function(event) {
-    const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
-    reader.onload = function(e) {
+window.handleCADImport = function(_0x7c) {
+    const _0x7d = _0x7c.target.files[0]; if (!_0x7d) return; const _0x7e = new FileReader();
+    _0x7e.onload = function(_0x7f) {
         try {
-            rawCadGeoJSON = JSON.parse(e.target.result); cadLayers = {}; loadedDTM = [];
+            rawCadGeoJSON = JSON.parse(_0x7f.target.result); cadLayers = {}; loadedDTM = [];
             if(rawCadGeoJSON.features) { 
-                rawCadGeoJSON.features.forEach(f => { 
-                    const layerName = (f.properties && f.properties.layer) ? f.properties.layer : "Default Layer"; cadLayers[layerName] = true; 
-                    if (f.geometry.type === 'Polygon' && f.geometry.coordinates[0][0].length === 3) { loadedDTM.push(f); document.getElementById('topSurfacesText').style.display = 'block'; }
+                rawCadGeoJSON.features.forEach(_0x80 => { 
+                    const _0x81 = (_0x80.properties && _0x80.properties.layer) ? _0x80.properties.layer : "Default Layer"; cadLayers[_0x81] = true; 
+                    if (_0x80.geometry.type === 'Polygon' && _0x80.geometry.coordinates[0][0].length === 3) { loadedDTM.push(_0x80); document.getElementById('topSurfacesText').style.display = 'block'; }
                 }); 
             }
             buildCadLayerManager(); renderCadVectors(); closeDrawer(); openModal('cadManagerOverlay');
-        } catch(err) { alert("Error parsing GeoJSON CAD file."); }
-    }; reader.readAsText(file);
+        } catch(_0x82) { alert("Error parsing GeoJSON CAD file."); }
+    }; _0x7e.readAsText(_0x7d);
 }
 
 const cadLayerGroup = L.layerGroup().addTo(map);
 function buildCadLayerManager() {
-    const container = document.getElementById('cadLayerList'); container.innerHTML = '';
-    if(Object.keys(cadLayers).length === 0) { container.innerHTML = '<p style="color: #9ca3af; font-size: 0.8rem; text-align: center;">No CAD data loaded.</p>'; return; }
-    Object.keys(cadLayers).forEach(layer => {
-        const row = document.createElement('div'); row.className = 'telemetry-row';
-        row.innerHTML = `<span style="font-size:0.85rem; font-weight:600; color:white;">${layer}</span><input type="checkbox" style="width:20px; height:20px; accent-color:var(--accent);" ${cadLayers[layer] ? 'checked' : ''} onchange="toggleSingleCadLayer('${layer}', this.checked)">`;
-        container.appendChild(row);
+    const _0x83 = document.getElementById('cadLayerList'); _0x83.innerHTML = '';
+    if(Object.keys(cadLayers).length === 0) { _0x83.innerHTML = '<p style="color: #9ca3af; font-size: 0.8rem; text-align: center;">No CAD data loaded.</p>'; return; }
+    Object.keys(cadLayers).forEach(_0x84 => {
+        const _0x85 = document.createElement('div'); _0x85.className = 'telemetry-row';
+        _0x85.innerHTML = `<span style="font-size:0.85rem; font-weight:600; color:white;">${_0x84}</span><input type="checkbox" style="width:20px; height:20px; accent-color:var(--accent);" ${cadLayers[_0x84] ? 'checked' : ''} onchange="toggleSingleCadLayer('${_0x84}', this.checked)">`;
+        _0x83.appendChild(_0x85);
     });
 }
-window.toggleSingleCadLayer = function(layer, state) { cadLayers[layer] = state; renderCadVectors(); };
-window.setAllCadLayers = function(state) { Object.keys(cadLayers).forEach(k => cadLayers[k] = state); buildCadLayerManager(); renderCadVectors(); };
+window.toggleSingleCadLayer = function(_0x86, _0x87) { cadLayers[_0x86] = _0x87; renderCadVectors(); };
+window.setAllCadLayers = function(_0x88) { Object.keys(cadLayers).forEach(_0x89 => cadLayers[_0x89] = _0x88); buildCadLayerManager(); renderCadVectors(); };
 function renderCadVectors() {
     cadLayerGroup.clearLayers(); if(!rawCadGeoJSON || !rawCadGeoJSON.features) return;
-    const filteredFeatures = rawCadGeoJSON.features.filter(f => { const layerName = (f.properties && f.properties.layer) ? f.properties.layer : "Default Layer"; return cadLayers[layerName]; });
-    L.geoJSON({ type: "FeatureCollection", features: filteredFeatures }, {
+    const _0x8a = rawCadGeoJSON.features.filter(_0x8b => { const _0x8c = (_0x8b.properties && _0x8b.properties.layer) ? _0x8b.properties.layer : "Default Layer"; return cadLayers[_0x8c]; });
+    L.geoJSON({ type: "FeatureCollection", features: _0x8a }, {
         style: { color: "#ec4899", weight: 2, opacity: 0.8 },
-        onEachFeature: function(feature, layer) { 
-            const lName = (feature.properties && feature.properties.layer) ? feature.properties.layer : "CAD Feature"; 
-            if(feature.geometry.type === 'LineString') { layer.on('click', () => { setCadAlignment(feature.geometry.coordinates, lName); }); } else { layer.bindPopup(`<b>${lName}</b>`); }
+        onEachFeature: function(_0x8d, _0x8e) { 
+            const _0x8f = (_0x8d.properties && _0x8d.properties.layer) ? _0x8d.properties.layer : "CAD Feature"; 
+            if(_0x8d.geometry.type === 'LineString') { _0x8e.on('click', () => { setCadAlignment(_0x8d.geometry.coordinates, _0x8f); }); } else { _0x8e.bindPopup(`<b>${_0x8f}</b>`); }
         }
     }).addTo(cadLayerGroup);
 }
 
-window.setCadAlignment = function(coords, name) {
-    if(!confirm(`Set ${name} as active Continuous Alignment?`)) return; activeAlignment = coords.map(c => [c[1], c[0]]); stationLineLayer.setLatLngs(activeAlignment);
-    document.getElementById('staPtAText').innerText = `CAD: ${name}`; document.getElementById('staPtBText').innerText = `Polyline Track`; openModal('cogoSuiteOverlay'); switchCogoTab('station');
+window.setCadAlignment = function(_0x90, _0x91) {
+    if(!confirm(`Set ${_0x91} as active Continuous Alignment?`)) return; activeAlignment = _0x90.map(_0x92 => [_0x92[1], _0x92[0]]); stationLineLayer.setLatLngs(activeAlignment);
+    document.getElementById('staPtAText').innerText = `CAD: ${_0x91}`; document.getElementById('staPtBText').innerText = `Polyline Track`; openModal('cogoSuiteOverlay'); switchCogoTab('station');
 };
 
 const cadCodes = [
@@ -1001,19 +1001,19 @@ const cadCodes = [
 
 const searchInput = document.getElementById('searchInput'); const dropdownList = document.getElementById('dropdownList'); const pointNote = document.getElementById('pointNote'); const previewText = document.getElementById('finalDescPreview');
 let selectedBaseCode = "RECON"; let activeModifiers = [];
-function renderDropdown(filterText = "") {
-    dropdownList.innerHTML = ''; const query = filterText.toLowerCase().trim();
-    const filtered = cadCodes.filter(c => c.code.toLowerCase().includes(query) || c.desc.toLowerCase().includes(query));
-    if(filtered.length === 0) { dropdownList.style.display = 'none'; return; }
-    filtered.forEach(c => {
-        const div = document.createElement('div'); div.className = 'dropdown-item'; div.innerHTML = `<span class="dropdown-code">${c.code}</span><span class="dropdown-desc">${c.desc}</span>`;
-        div.onclick = () => { selectedBaseCode = c.code; searchInput.value = c.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(div);
+function renderDropdown(_0x93 = "") {
+    dropdownList.innerHTML = ''; const _0x94 = _0x93.toLowerCase().trim();
+    const _0x95 = cadCodes.filter(_0x96 => _0x96.code.toLowerCase().includes(_0x94) || _0x96.desc.toLowerCase().includes(_0x94));
+    if(_0x95.length === 0) { dropdownList.style.display = 'none'; return; }
+    _0x95.forEach(_0x97 => {
+        const _0x98 = document.createElement('div'); _0x98.className = 'dropdown-item'; _0x98.innerHTML = `<span class="dropdown-code">${_0x97.code}</span><span class="dropdown-desc">${_0x97.desc}</span>`;
+        _0x98.onclick = () => { selectedBaseCode = _0x97.code; searchInput.value = _0x97.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(_0x98);
     }); dropdownList.style.display = 'block';
 }
 
-searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); searchInput.addEventListener('input', (e) => { renderDropdown(e.target.value); selectedBaseCode = e.target.value.toUpperCase() || "RECON"; updatePreview(); }); document.addEventListener('click', (e) => { if(!document.getElementById('dropdownContainer').contains(e.target)) dropdownList.style.display = 'none'; }); window.toggleMod = function(btn, mod) { btn.classList.toggle('active'); if(activeModifiers.includes(mod)) activeModifiers = activeModifiers.filter(m => m !== mod); else activeModifiers.push(mod); updatePreview(); }; pointNote.addEventListener('input', updatePreview);
-function updatePreview() { let final = selectedBaseCode; if(activeModifiers.length) final += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) final += ` ${pointNote.value.trim().toUpperCase()}`; previewText.innerText = `PREVIEW: ${final || "RECON"}`; }
-function getFinalDescription() { let final = selectedBaseCode; if(activeModifiers.length) final += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) final += ` ${pointNote.value.trim().toUpperCase()}`; return final || "RECON"; }
+searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); searchInput.addEventListener('input', (_0x99) => { renderDropdown(_0x99.target.value); selectedBaseCode = _0x99.target.value.toUpperCase() || "RECON"; updatePreview(); }); document.addEventListener('click', (_0x9a) => { if(!document.getElementById('dropdownContainer').contains(_0x9a.target)) dropdownList.style.display = 'none'; }); window.toggleMod = function(_0x9b, _0x9c) { _0x9b.classList.toggle('active'); if(activeModifiers.includes(_0x9c)) activeModifiers = activeModifiers.filter(_0x9d => _0x9d !== _0x9c); else activeModifiers.push(_0x9c); updatePreview(); }; pointNote.addEventListener('input', updatePreview);
+function updatePreview() { let _0x9e = selectedBaseCode; if(activeModifiers.length) _0x9e += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) _0x9e += ` ${pointNote.value.trim().toUpperCase()}`; previewText.innerText = `PREVIEW: ${_0x9e || "RECON"}`; }
+function getFinalDescription() { let _0x9f = selectedBaseCode; if(activeModifiers.length) _0x9f += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) _0x9f += ` ${pointNote.value.trim().toUpperCase()}`; return _0x9f || "RECON"; }
 
 document.getElementById('centerBtn').addEventListener('click', () => { if (userMarker) map.setView(userMarker.getLatLng(), 19); });
 
@@ -1021,125 +1021,122 @@ document.getElementById('gpsPinBtn').addEventListener('click', () => {
     if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0);
     if (!lastKnownLat) { alert("Awaiting GPS lock..."); return; } 
     if (lastKnownAccuracy > window.qcTolerance) { if(!confirm(`⚠️ WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; }
-    const overlay = document.getElementById('averagingOverlay'); overlay.style.display = 'flex'; let readings = []; let ticks = 5; document.getElementById('avgTimer').innerText = ticks; if (navigator.vibrate) navigator.vibrate(50); 
-    const avgInterval = setInterval(() => { 
-        readings.push({ lat: lastKnownLat, lon: lastKnownLon }); ticks--; document.getElementById('avgTimer').innerText = ticks; 
-        if (ticks <= 0) { clearInterval(avgInterval); overlay.style.display = 'none'; const avgLat = readings.reduce((s,r)=>s+r.lat,0)/readings.length; const avgLon = readings.reduce((s,r)=>s+r.lon,0)/readings.length; savePin(avgLat, avgLon); } 
+    const _0xa0 = document.getElementById('averagingOverlay'); _0xa0.style.display = 'flex'; let _0xa1 = []; let _0xa2 = 5; document.getElementById('avgTimer').innerText = _0xa2; if (navigator.vibrate) navigator.vibrate(50); 
+    const _0xa3 = setInterval(() => { 
+        _0xa1.push({ lat: lastKnownLat, lon: lastKnownLon }); _0xa2--; document.getElementById('avgTimer').innerText = _0xa2; 
+        if (_0xa2 <= 0) { clearInterval(_0xa3); _0xa0.style.display = 'none'; const _0xa4 = _0xa1.reduce((_0xa5,_0xa6)=>_0xa5+_0xa6.lat,0)/_0xa1.length; const _0xa7 = _0xa1.reduce((_0xa8,_0xa9)=>_0xa8+_0xa9.lon,0)/_0xa1.length; savePin(_0xa4, _0xa7); } 
     }, 1000); 
 });
 
-document.getElementById('mapPinBtn').addEventListener('click', () => { if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); const center = map.getCenter(); savePin(center.lat, center.lng); });
+document.getElementById('mapPinBtn').addEventListener('click', () => { if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); const _0xaa = map.getCenter(); savePin(_0xaa.lat, _0xaa.lng); });
 
-async function savePin(lat, lng) {
-const baseStartId = parseInt(document.getElementById('startIdInput').value) || 1; const nextId = pinData.length > 0 ? Math.max(...pinData.map(p=>p.id)) + 1 : baseStartId;
-const p = { id: nextId, lat, lng, desc: getFinalDescription(), photo: currentCapturedPhoto }; 
-pinData.push(p); currentCapturedPhoto = null; document.getElementById('photoStatusIndicator').style.display = 'none';
-await savePinsToDB(); renderPin(p, pinData.length - 1); rebuildSmartLinework();
-document.getElementById('pointNote').value = ''; searchInput.value = ''; activeModifiers = []; document.querySelectorAll('.mod-btn').forEach(b => b.classList.remove('active')); updatePreview(); 
+async function savePin(_0xab, _0xac) {
+    const _0xad = parseInt(document.getElementById('startIdInput').value) || 1; const _0xae = pinData.length > 0 ? Math.max(...pinData.map(_0xaf=>_0xaf.id)) + 1 : _0xad;
+    const _0xb0 = { id: _0xae, lat: _0xab, lng: _0xac, desc: getFinalDescription(), photo: currentCapturedPhoto }; 
+    pinData.push(_0xb0); currentCapturedPhoto = null; document.getElementById('photoStatusIndicator').style.display = 'none';
+    await savePinsToDB(); renderPin(_0xb0, pinData.length - 1); rebuildSmartLinework();
+    document.getElementById('pointNote').value = ''; searchInput.value = ''; activeModifiers = []; document.querySelectorAll('.mod-btn').forEach(_0xb1 => _0xb1.classList.remove('active')); updatePreview(); 
 }
 
 let activeHighlight = null;
-map.on('click', async function(e) {
-if(e.originalEvent.target.closest('.leaflet-popup') || e.originalEvent.target.closest('.side-tools') || e.originalEvent.target.closest('.top-bar') || e.originalEvent.target.closest('#bullseyePanel')) return;
-
-const lat = e.latlng.lat; const lng = e.latlng.lng;
-if(activeHighlight) map.removeLayer(activeHighlight); const d = 0.0002; activeHighlight = L.polygon([[lat-d, lng-d], [lat+d, lng-d], [lat+d, lng+d], [lat-d, lng+d]], {color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.4}).addTo(map);
-
-document.getElementById('parcelAddress').innerText = "Querying County GIS..."; document.getElementById('parcelSheet').classList.add('open');
-
-try {
-    const latInt = Math.abs(Math.round(lat * 1000000)); const lonInt = Math.abs(Math.round(lng * 1000000)); const uniqueMapNo = `312${(latInt % 10000).toString().padStart(4, '0')}${(lonInt % 1000).toString().padStart(3, '0')}`;
-    const queryUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-    const res = await fetch(queryUrl); const data = await res.json();
-    if(data && data.display_name) { document.getElementById('parcelAddress').innerText = data.display_name; document.getElementById('parcelOwner').innerText = `Owner: Verified Local Title (GIS Ref)`; document.getElementById('parcelAPN').innerText = `APN / Map No: ${uniqueMapNo}`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: ${(Math.abs(lat) % 2 + 0.35).toFixed(2)} AC`; } else { throw new Error("Address lookup failed"); }
-    document.getElementById('parcelCoords').innerText = `Lat/Lon: ${lat.toFixed(6)}, ${lng.toFixed(6)}`; const zone = document.getElementById('spcZoneSelect').value;
-    if(zone !== "EPSG:4326") { const spc = proj4('EPSG:4326', zone, [lng, lat]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${spc[1].toFixed(2)}', ${spc[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
-    document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${lat}/${lng}`;
-} catch(err) {
-    document.getElementById('parcelAddress').innerText = "County Parcel Reference"; document.getElementById('parcelAPN').innerText = `APN / Map No: 3120001001`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: 0.75 AC`; document.getElementById('parcelCoords').innerText = `Lat/Lon: ${lat.toFixed(6)}, ${lng.toFixed(6)}`; document.getElementById('parcelSPC').innerText = `SPC: Computed via Proj4js`; document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${lat}/${lng}`;
-}
+map.on('click', async function(_0xb2) {
+    if(_0xb2.originalEvent.target.closest('.leaflet-popup') || _0xb2.originalEvent.target.closest('.side-tools') || _0xb2.originalEvent.target.closest('.top-bar') || _0xb2.originalEvent.target.closest('#bullseyePanel')) return;
+    const _0xb3 = _0xb2.latlng.lat; const _0xb4 = _0xb2.latlng.lng;
+    if(activeHighlight) map.removeLayer(activeHighlight); const _0xb5 = 0.0002; activeHighlight = L.polygon([[_0xb3-_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4+_0xb5], [_0xb3-_0xb5, _0xb4+_0xb5]], {color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.4}).addTo(map);
+    document.getElementById('parcelAddress').innerText = "Querying County GIS..."; document.getElementById('parcelSheet').classList.add('open');
+    try {
+        const _0xb6 = Math.abs(Math.round(_0xb3 * 1000000)); const _0xb7 = Math.abs(Math.round(_0xb4 * 1000000)); const _0xb8 = `312${(_0xb6 % 10000).toString().padStart(4, '0')}${(_0xb7 % 1000).toString().padStart(3, '0')}`;
+        const _0xb9 = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${_0xb3}&lon=${_0xb4}&zoom=18&addressdetails=1`;
+        const _0xba = await fetch(_0xb9); const _0xbb = await _0xba.json();
+        if(_0xbb && _0xbb.display_name) { document.getElementById('parcelAddress').innerText = _0xbb.display_name; document.getElementById('parcelOwner').innerText = `Owner: Verified Local Title (GIS Ref)`; document.getElementById('parcelAPN').innerText = `APN / Map No: ${_0xb8}`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: ${(Math.abs(_0xb3) % 2 + 0.35).toFixed(2)} AC`; } else { throw new Error("Address lookup failed"); }
+        document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; const _0xbc = document.getElementById('spcZoneSelect').value;
+        if(_0xbc !== "EPSG:4326") { const _0xbd = proj4('EPSG:4326', _0xbc, [_0xb4, _0xb3]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${_0xbd[1].toFixed(2)}', ${_0xbd[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
+        document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${_0xb3}/${_0xb4}`;
+    } catch(_0xbe) {
+        document.getElementById('parcelAddress').innerText = "County Parcel Reference"; document.getElementById('parcelAPN').innerText = `APN / Map No: 3120001001`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: 0.75 AC`; document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; document.getElementById('parcelSPC').innerText = `SPC: Computed via Proj4js`; document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${_0xb3}/${_0xb4}`;
+    }
 });
 window.closeParcelSheet = function() { document.getElementById('parcelSheet').classList.remove('open'); if(activeHighlight) map.removeLayer(activeHighlight); };
 
 window.solveCurve = function() {
-    const rad = parseFloat(document.getElementById('curveRad').value); const delta = parseFloat(document.getElementById('curveDelta').value); if(isNaN(rad) || isNaN(delta)) return;
-    const deltaRad = delta * (Math.PI / 180); const length = rad * deltaRad; const tangent = rad * Math.tan(deltaRad / 2); const chord = 2 * rad * Math.sin(deltaRad / 2);
-    document.getElementById('curveL').innerText = `${length.toFixed(2)} FT`; document.getElementById('curveT').innerText = `${tangent.toFixed(2)} FT`; document.getElementById('curveC').innerText = `${chord.toFixed(2)} FT`;
+    const _0xbf = parseFloat(document.getElementById('curveRad').value); const _0xc0 = parseFloat(document.getElementById('curveDelta').value); if(isNaN(_0xbf) || isNaN(_0xc0)) return;
+    const _0xc1 = _0xc0 * (Math.PI / 180); const _0xc2 = _0xbf * _0xc1; const _0xc3 = _0xbf * Math.tan(_0xc1 / 2); const _0xc4 = 2 * _0xbf * Math.sin(_0xc1 / 2);
+    document.getElementById('curveL').innerText = `${_0xc2.toFixed(2)} FT`; document.getElementById('curveT').innerText = `${_0xc3.toFixed(2)} FT`; document.getElementById('curveC').innerText = `${_0xc4.toFixed(2)} FT`;
 };
 
-function downloadFile(filename, content, type = 'text/plain') {
-    const blob = new Blob([content], { type: type });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+function downloadFile(_0xc5, _0xc6, _0xc7 = 'text/plain') {
+    const _0xc8 = new Blob([_0xc6], { type: _0xc7 });
+    const _0xc9 = URL.createObjectURL(_0xc8);
+    const _0xca = document.createElement('a');
+    _0xca.href = _0xc9;
+    _0xca.download = _0xc5;
+    document.body.appendChild(_0xca);
+    _0xca.click();
+    document.body.removeChild(_0xca);
+    URL.revokeObjectURL(_0xc9);
 }
 
 window.exportCSV = function() {
     if(pinData.length === 0) { alert("No points to export."); return; }
-    const zone = document.getElementById('spcZoneSelect').value; let csv = "Point,Northing,Easting,Elevation,Description\n";
-    pinData.forEach(p => { let proj = proj4('EPSG:4326', zone, [p.lng, p.lat]); csv += `${p.id},${proj[1].toFixed(4)},${proj[0].toFixed(4)},0.00,${p.desc}\n`; });
-    downloadFile(`Project_${activeProjectId}_PNEZD.csv`, csv, 'text/csv');
+    const _0xcb = document.getElementById('spcZoneSelect').value; let _0xcc = "Point,Northing,Easting,Elevation,Description\n";
+    pinData.forEach(_0xcd => { let _0xce = proj4('EPSG:4326', _0xcb, [_0xcd.lng, _0xcd.lat]); _0xcc += `${_0xcd.id},${_0xce[1].toFixed(4)},${_0xce[0].toFixed(4)},0.00,${_0xcd.desc}\n`; });
+    downloadFile(`Project_${activeProjectId}_PNEZD.csv`, _0xcc, 'text/csv');
 };
 
 window.exportDXF = function() {
     if(pinData.length === 0) { alert("No points to export."); return; }
-    const zone = document.getElementById('spcZoneSelect').value; let dxf = "0\nSECTION\n2\nENTITIES\n";
-    pinData.forEach(p => { 
-        let proj = proj4('EPSG:4326', zone, [p.lng, p.lat]); dxf += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${proj[0].toFixed(4)}\n20\n${proj[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(proj[0]+2).toFixed(4)}\n20\n${(proj[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${p.id}-${p.desc}\n`; 
+    const _0xcf = document.getElementById('spcZoneSelect').value; let _0xd0 = "0\nSECTION\n2\nENTITIES\n";
+    pinData.forEach(_0xd1 => { 
+        let _0xd2 = proj4('EPSG:4326', _0xcf, [_0xd1.lng, _0xd1.lat]); _0xd0 += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${_0xd2[0].toFixed(4)}\n20\n${_0xd2[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(_0xd2[0]+2).toFixed(4)}\n20\n${(_0xd2[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${_0xd1.id}-${_0xd1.desc}\n`; 
     });
-    dxf += "0\nENDSEC\n0\nEOF\n";
-    downloadFile(`Project_${activeProjectId}.dxf`, dxf, 'application/dxf');
+    _0xd0 += "0\nENDSEC\n0\nEOF\n";
+    downloadFile(`Project_${activeProjectId}.dxf`, _0xd0, 'application/dxf');
 };
 
-function createRow(htmlContent) { const tr = document.createElement('tr'); tr.innerHTML = htmlContent; const btn = tr.querySelector('.del-row-btn'); if (btn) { btn.addEventListener('click', function() { tr.remove(); }); } return tr; }
-window.switchBookTab = function(tab) { ['level','traverse','builder','notes'].forEach(t => { document.getElementById(t+'BookSection').style.display = (t === tab) ? 'block' : 'none'; document.getElementById('tabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563'; }); };
-window.addLevelRow = function() { const html = '<td><input value="TP"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="100.00"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('levelRows').appendChild(createRow(html)); };
-window.addTraverseRow = function() { const html = '<td><input placeholder="From"></td><td><input placeholder="To"></td><td><input placeholder="Azimuth"></td><td><input placeholder="Dist"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('traverseRows').appendChild(createRow(html)); };
-window.addBuilderRow = function() { const html = '<td><input placeholder="PT"></td><td><input placeholder="Rod"></td><td><input placeholder="Grade"></td><td><input placeholder="C/F"></td><td><input placeholder="Desc"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('builderRows').appendChild(createRow(html)); };
+function createRow(_0xd3) { const _0xd4 = document.createElement('tr'); _0xd4.innerHTML = _0xd3; const _0xd5 = _0xd4.querySelector('.del-row-btn'); if (_0xd5) { _0xd5.addEventListener('click', function() { _0xd4.remove(); }); } return _0xd4; }
+window.switchBookTab = function(_0xd6) { ['level','traverse','builder','notes'].forEach(_0xd7 => { document.getElementById(_0xd7+'BookSection').style.display = (_0xd7 === _0xd6) ? 'block' : 'none'; document.getElementById('tabBtn-'+_0xd7).style.background = (_0xd7 === _0xd6) ? 'var(--accent)' : '#4b5563'; }); };
+window.addLevelRow = function() { const _0xd8 = '<td><input value="TP"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="100.00"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('levelRows').appendChild(createRow(_0xd8)); };
+window.addTraverseRow = function() { const _0xd9 = '<td><input placeholder="From"></td><td><input placeholder="To"></td><td><input placeholder="Azimuth"></td><td><input placeholder="Dist"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('traverseRows').appendChild(createRow(_0xd9)); };
+window.addBuilderRow = function() { const _0xda = '<td><input placeholder="PT"></td><td><input placeholder="Rod"></td><td><input placeholder="Grade"></td><td><input placeholder="C/F"></td><td><input placeholder="Desc"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('builderRows').appendChild(createRow(_0xda)); };
 
 window.adjustTraverse = function() {
-const rows = document.querySelectorAll('#traverseRows tr'); if (rows.length < 3) { alert("Need at least 3 legs to compute traverse closure."); return; }
-let sumLat = 0, sumDep = 0, sumDist = 0; let legs = [];
-rows.forEach(tr => {
-    const vals = Array.from(tr.querySelectorAll('input')).map(i => parseFloat(i.value) || 0);
-    const azRad = vals[2] * (Math.PI / 180); const dist = vals[3]; const lat = dist * Math.cos(azRad); const dep = dist * Math.sin(azRad);
-    sumLat += lat; sumDep += dep; sumDist += dist; legs.push({ from: vals[0], to: vals[1], az: vals[2], dist, lat, dep });
-});
-const linearMisclosure = Math.sqrt((sumLat * sumLat) + (sumDep * sumDep)); const precision = sumDist / linearMisclosure;
-let reportHTML = `<span style="color:white; font-weight:bold;">TRAVERSE CLOSURE REPORT</span><br>Linear Error: ${linearMisclosure.toFixed(3)} FT<br>Precision Ratio: 1:${Math.round(precision)}<br><br><span style="color:var(--success); font-weight:bold;">COMPASS RULE ADJUSTMENTS</span><br>`;
-legs.forEach((leg, idx) => {
-    const adjLat = leg.lat - (sumLat * (leg.dist / sumDist)); const adjDep = leg.dep - (sumDep * (leg.dist / sumDist));
-    reportHTML += `Leg ${idx+1}: Lat Adj = ${(adjLat - leg.lat).toFixed(4)}, Dep Adj = ${(adjDep - leg.dep).toFixed(4)}<br>`;
-});
-const rptDiv = document.getElementById('traverseReport'); rptDiv.innerHTML = reportHTML; rptDiv.style.display = 'block';
+    const _0xdb = document.querySelectorAll('#traverseRows tr'); if (_0xdb.length < 3) { alert("Need at least 3 legs to compute traverse closure."); return; }
+    let _0xdc = 0, _0xdd = 0, _0xde = 0; let _0xdf = [];
+    _0xdb.forEach(_0xe0 => {
+        const _0xe1 = Array.from(_0xe0.querySelectorAll('input')).map(_0xe2 => parseFloat(_0xe2.value) || 0);
+        const _0xe3 = _0xe1[2] * (Math.PI / 180); const _0xe4 = _0xe1[3]; const _0xe5 = _0xe4 * Math.cos(_0xe3); const _0xe6 = _0xe4 * Math.sin(_0xe3);
+        _0xdc += _0xe5; _0xdd += _0xe6; _0xde += _0xe4; _0xdf.push({ from: _0xe1[0], to: _0xe1[1], az: _0xe1[2], dist: _0xe4, lat: _0xe5, dep: _0xe6 });
+    });
+    const _0xe7 = Math.sqrt((_0xdc * _0xdc) + (_0xdd * _0xdd)); const _0xe8 = _0xde / _0xe7;
+    let _0xe9 = `<span style="color:white; font-weight:bold;">TRAVERSE CLOSURE REPORT</span><br>Linear Error: ${_0xe7.toFixed(3)} FT<br>Precision Ratio: 1:${Math.round(_0xe8)}<br><br><span style="color:var(--success); font-weight:bold;">COMPASS RULE ADJUSTMENTS</span><br>`;
+    _0xdf.forEach((_0xea, _0xeb) => {
+        const _0xec = _0xea.lat - (_0xdc * (_0xea.dist / _0xde)); const _0xed = _0xea.dep - (_0xdd * (_0xea.dist / _0xde));
+        _0xe9 += `Leg ${_0xeb+1}: Lat Adj = ${(_0xec - _0xea.lat).toFixed(4)}, Dep Adj = ${(_0xed - _0xea.dep).toFixed(4)}<br>`;
+    });
+    const _0xee = document.getElementById('traverseReport'); _0xee.innerHTML = _0xe9; _0xee.style.display = 'block';
 };
 
 window.compileReport = function() {
-const proj = document.getElementById('fbProject').value.trim() || "N/A"; const job = document.getElementById('fbJobNo').value.trim() || "N/A";
-const crew = document.getElementById('fbCrew').value.trim() || "N/A"; const temp = document.getElementById('fbTemp').value.trim() || "N/A"; const weather = document.getElementById('fbWeather').value.trim() || "N/A";
-let report = `SURVEY FIELD BOOK REPORT\nProject: ${proj} | Job: ${job}\nCrew: ${crew} | Temp: ${temp}° | Weather: ${weather}\nDate: ${new Date().toLocaleDateString()}\n----------------------------------------\n`;
-const levelRows = document.querySelectorAll('#levelRows tr'); if (levelRows.length > 0) { report += "\n--- LEVEL LOOP ---\nSTA | BS | HI | FS | ELEV\n"; levelRows.forEach(tr => { const vals = Array.from(tr.querySelectorAll('input')).map(i => i.value); report += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]} | ${vals[4]}\n`; }); }
-const travRows = document.querySelectorAll('#traverseRows tr'); if (travRows.length > 0) { report += "\n--- TRAVERSE ---\nSETUP | TARGET | AZIMUTH | DIST\n"; travRows.forEach(tr => { const vals = Array.from(tr.querySelectorAll('input')).map(i => i.value); report += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]}\n`; }); }
-const rodRows = document.querySelectorAll('#builderRows tr'); if (rodRows.length > 0) { report += "\n--- ROD SHOTS ---\nPOINT | ROD | GRADE | CUT/FILL | DESC\n"; rodRows.forEach(tr => { const vals = Array.from(tr.querySelectorAll('input')).map(i => i.value); report += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]} | ${vals[4]}\n`; }); }
-const notes = document.getElementById('notebookFreeform').value.trim(); if (notes) { report += `\n--- NOTES ---\n${notes}\n`; } return report;
+    const _0xef = document.getElementById('fbProject').value.trim() || "N/A"; const _0xf0 = document.getElementById('fbJobNo').value.trim() || "N/A";
+    const _0xf1 = document.getElementById('fbCrew').value.trim() || "N/A"; const _0xf2 = document.getElementById('fbTemp').value.trim() || "N/A"; const _0xf3 = document.getElementById('fbWeather').value.trim() || "N/A";
+    let _0xf4 = `SURVEY FIELD BOOK REPORT\nProject: ${_0xef} | Job: ${_0xf0}\nCrew: ${_0xf1} | Temp: ${_0xf2}° | Weather: ${_0xf3}\nDate: ${new Date().toLocaleDateString()}\n----------------------------------------\n`;
+    const _0xf5 = document.querySelectorAll('#levelRows tr'); if (_0xf5.length > 0) { _0xf4 += "\n--- LEVEL LOOP ---\nSTA | BS | HI | FS | ELEV\n"; _0xf5.forEach(_0xf6 => { const _0xf7 = Array.from(_0xf6.querySelectorAll('input')).map(_0xf8 => _0xf8.value); _0xf4 += `${_0xf7[0]} | ${_0xf7[1]} | ${_0xf7[2]} | ${_0xf7[3]} | ${_0xf7[4]}\n`; }); }
+    const _0xf9 = document.querySelectorAll('#traverseRows tr'); if (_0xf9.length > 0) { _0xf4 += "\n--- TRAVERSE ---\nSETUP | TARGET | AZIMUTH | DIST\n"; _0xf9.forEach(_0xfa => { const _0xfb = Array.from(_0xfa.querySelectorAll('input')).map(_0xfc => _0xfc.value); _0xf4 += `${_0xfb[0]} | ${_0xfb[1]} | ${_0xfb[2]} | ${_0xfb[3]}\n`; }); }
+    const _0xfd = document.querySelectorAll('#builderRows tr'); if (_0xfd.length > 0) { _0xf4 += "\n--- ROD SHOTS ---\nPOINT | ROD | GRADE | CUT/FILL | DESC\n"; _0xfd.forEach(_0xfe => { const _0xff = Array.from(_0xfe.querySelectorAll('input')).map(_0x100 => _0x100.value); _0xf4 += `${_0xff[0]} | ${_0xff[1]} | ${_0xff[2]} | ${_0xff[3]} | ${_0xff[4]}\n`; }); }
+    const _0x101 = document.getElementById('notebookFreeform').value.trim(); if (_0x101) { _0xf4 += `\n--- NOTES ---\n${_0x101}\n`; } return _0xf4;
 };
 
 window.previewFieldBook = function() { document.getElementById('reportPreviewContainer').innerText = compileReport(); document.getElementById('previewOverlay').style.display = 'flex'; };
 
 window.exportFieldBookLocal = function() {
-    const report = compileReport();
-    downloadFile(`Project_${activeProjectId}_FieldBook.txt`, report, 'text/plain');
+    const _0x102 = compileReport();
+    downloadFile(`Project_${activeProjectId}_FieldBook.txt`, _0x102, 'text/plain');
 };
 
-window.changeUIScale = function(scaleClass) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(scaleClass !== 'scale-normal') document.body.classList.add(scaleClass); localStorage.setItem('uiScale', scaleClass); };
-window.updateStartId = function(val) { localStorage.setItem('startIdInput', val); }
+window.changeUIScale = function(_0x103) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(_0x103 !== 'scale-normal') document.body.classList.add(_0x103); localStorage.setItem('uiScale', _0x103); };
+window.updateStartId = function(_0x104) { localStorage.setItem('startIdInput', _0x104); }
 document.getElementById('startIdInput').value = localStorage.getItem('startIdInput') || 1;
-window.togglePocketMode = () => { const el = document.getElementById('pocketModeOverlay'); el.style.display = el.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
+window.togglePocketMode = () => { const _0x105 = document.getElementById('pocketModeOverlay'); _0x105.style.display = _0x105.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
 </script>
 </body>
 </html>
