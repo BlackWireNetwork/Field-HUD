@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.5";
+const CURRENT_VERSION = "1.6";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -539,19 +539,21 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <h2 style="font-size: 1.4rem; font-weight: 900; color: #4b5563;">RTK GNSS CONNECTIVITY GUIDE</h2>
 <button onclick="closeModal('rtkOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
-<p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 1rem;">Choose either connection method below to feed centimeter-level RTK data into Field HUD:</p>
+<p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 1rem;">Choose your device platform below to connect an external Bluetooth receiver for true RTK accuracy:</p>
 <div class="help-grid">
     <div class="help-card">
-        <h3>Method A: NTRIP Client Setup (Direct VRS)</h3>
-        <p>1. Open an NTRIP client app on your device (e.g., Lefebure NTRIP).<br>
-           2. Enter your state VRS network mountpoint, IP, port, username, and password.<br>
-           3. Connect to your Bluetooth GNSS receiver. The app streams corrected RTK data straight into the browser.</p>
+        <h3>Android Users: NTRIP Connection</h3>
+        <p>1. Pair your Bluetooth GNSS receiver in your Android Bluetooth settings.<br>
+           2. Download a free client app like <b>Lefebure NTRIP Client</b> or <b>SW Maps</b> from the Play Store.<br>
+           3. Input your state VRS network credentials (Caster IP, Port, Mountpoint, Username, Password).<br>
+           4. Connect. The app pulls cellular corrections and pipes them to your receiver for live survey precision.</p>
     </div>
     <div class="help-card">
-        <h3>Method B: TCP Server / Python Bridge (Termux)</h3>
-        <p>1. Pair your GNSS receiver via Bluetooth.<br>
-           2. Configure your field controller software to broadcast raw NMEA sentences as a <b>TCP Server on port 50000</b>.<br>
-           3. Run the lightweight Python bridge script in Termux to pipe the NMEA stream seamlessly into the HUD.</p>
+        <h3>iPhone / iOS Users: NTRIP Connection</h3>
+        <p>1. Pair your Bluetooth GNSS receiver to your iOS device.<br>
+           2. Use a compatible free iOS app with built-in Bluetooth and NTRIP support, such as <b>SW Maps</b> or <b>NTRIP STX</b> (or your receiver brand's official app like Emlid Flow).<br>
+           3. Enter your local RTK Network / VRS caster parameters.<br>
+           4. Start the correction stream to instantly feed high-precision coordinates into your browser session.</p>
     </div>
 </div>
 </div>
