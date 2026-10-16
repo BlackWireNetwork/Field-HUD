@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.3";
+const CURRENT_VERSION = "1.4";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -44,7 +44,7 @@ body.scale-large { --ui-scale: 1.15rem; --btn-pad: 1rem; }
 html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; color: white; background: #000; font-size: var(--ui-scale); }
 #map { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; }
 .glass-panel { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-.top-bar { position: absolute; top: 1rem; left: 4.5rem; right: 8.5rem; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; }
+.top-bar { position: absolute; top: 1rem; left: 4.5rem; right: 8.5rem; z-index: 50; display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem 0.75rem; }
 .hamburger-btn { position: absolute; top: 1rem; left: 1rem; z-index: 60; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; font-weight: 900; }
 .side-tools { position: absolute; top: 1rem; right: 1rem; z-index: 50; display: flex; flex-direction: column; gap: 0.4rem; }
 .bottom-drawer { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; z-index: 50; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
@@ -90,7 +90,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 .help-card { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid var(--accent); }
 .help-card h3 { font-size: 1.05rem; font-weight: 900; color: white; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; }
 .help-card p { font-size: 0.85rem; color: #9ca3af; line-height: 1.5; margin: 0; }
-#targetIndicator { display: none; background: rgba(0,0,0,0.8); padding: 0.4rem 0.6rem; border-radius: 0.5rem; border: 2px solid var(--glass-border); transition: border-color 0.3s, background-color 0.3s; }
+#targetIndicator { display: none; background: rgba(0,0,0,0.85); padding: 0.5rem; border-radius: 0.5rem; border: 2px solid var(--glass-border); margin-top: 0.3rem; transition: border-color 0.3s, background-color 0.3s; }
 #targetIndicator.near { border-color: var(--warning); background: rgba(245, 158, 11, 0.2); }
 #targetIndicator.close { border-color: var(--success); background: rgba(16, 185, 129, 0.2); }
 #cogoSelectionBar { position: absolute; top: 4.5rem; left: 50%; transform: translateX(-50%); z-index: 900; background: var(--glass); border: 2px solid var(--warning); padding: 0.5rem 1rem; border-radius: 2rem; display: none; align-items: center; gap: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(8px); white-space: nowrap; }
@@ -106,12 +106,14 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">MENU</button>
 
 <div class="top-bar glass-panel">
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
 <div>
-<h1 style="font-size: 1.1rem; font-weight: 900; color: var(--accent); margin: 0;">FIELD HUD</h1>
-<p id="statusText" style="font-size: 0.75rem; font-family: monospace; color: #9ca3af; font-weight: bold;">GPS INIT...</p>
+<h1 style="font-size: 1rem; font-weight: 900; color: var(--accent); margin: 0;">FIELD HUD</h1>
+<p id="statusText" style="font-size: 0.7rem; font-family: monospace; color: #9ca3af; font-weight: bold;">GPS INIT...</p>
 </div>
-<div style="text-align: right;">
-<div id="activeCrsLabel" style="font-size: 0.65rem; font-family: monospace; color: #38bdf8; font-weight: bold; margin-bottom: 0.1rem;">CRS: AUTO</div>
+<div id="activeCrsLabel" style="font-size: 0.65rem; font-family: monospace; color: #38bdf8; font-weight: bold;">CRS: AUTO</div>
+</div>
+
 <div id="targetIndicator">
 <div style="display:flex; justify-content:space-between; align-items:center;">
     <div id="telDistHeader" style="font-size: 1.1rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
@@ -119,7 +121,6 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
     <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.4rem;">VISUAL</button>
 </div>
 <div id="telDeltas" style="font-size: 0.7rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.1rem;">DN: -- | DE: --</div>
-</div>
 </div>
 </div>
 
@@ -170,27 +171,34 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 <div class="side-drawer" id="sideDrawer">
-<h2 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 0.5rem;">PROJECT MANAGER</h2>
-<div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-<select id="projectSelector" onchange="switchProject(this.value)" style="flex-grow: 1; font-size: 0.8rem;"></select>
-<button class="btn" style="background: var(--accent); width: auto; padding: 0.5rem;" onclick="createNewProject()">NEW</button>
+<h2 style="font-size: 1.15rem; font-weight: 900; margin-bottom: 0.25rem;">PROJECT FILE</h2>
+<div style="background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 0.75rem; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;">
+<div style="display: flex; justify-content: space-between; align-items: center;">
+<span id="activeProjectDisplay" style="font-size: 0.9rem; font-weight: 900; color: var(--accent);">Job 1</span>
+<span style="font-size: 0.65rem; color: var(--success); font-family: monospace; font-weight: bold;">AUTOSAVE ON</span>
+</div>
+<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.3rem;">
+<button class="btn" style="background: var(--accent); font-size: 0.65rem; padding: 0.3rem;" onclick="openModal('projectManagerOverlay')">SWITCH</button>
+<button class="btn" style="background: #8b5cf6; font-size: 0.65rem; padding: 0.3rem;" onclick="renameActiveProject()">RENAME</button>
+<button class="btn" style="background: var(--success); font-size: 0.65rem; padding: 0.3rem;" onclick="createNewProject()">NEW</button>
+</div>
 </div>
 
-<h2 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 0.5rem;">HUB & TOOLS</h2>
+<h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">HUB & TOOLS</h2>
 <button class="btn" style="background: #6366f1; margin-bottom:0.5rem;" onclick="openModal('dataHubOverlay');">Data & Files</button>
 <button class="btn" style="background: #38bdf8; margin-bottom:0.5rem;" onclick="openModal('cogoSuiteOverlay');">COGO Suite</button>
 
-<h2 style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; margin-bottom: 0.5rem;">CAD & MAP</h2>
+<h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">CAD & MAP</h2>
 <button class="btn" style="background: #a855f7; margin-bottom:0.5rem;" onclick="openModal('cadManagerOverlay')">Layer & Point Filters</button>
 <button class="btn" style="background: #10b981; margin-bottom:0.5rem;" onclick="document.getElementById('csvInput').click();">Import Stakeout CSV</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
 <button class="btn" style="background: #ec4899; margin-bottom:0.5rem;" onclick="document.getElementById('cadInput').click();">Import Vector / DTM</button>
 <input type="file" id="cadInput" accept=".geojson,.json,.txt" style="display: none;" onchange="handleCADImport(event)">
 
-<h2 style="font-size: 1.25rem; font-weight: 900; margin-top: 1rem; margin-bottom: 0.5rem;">SETTINGS & HELP</h2>
+<h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">SETTINGS & HELP</h2>
 <button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="openModal('rtkOverlay')">RTK Connectivity</button>
-<button class="btn" style="background: #6b7280; margin-bottom:1rem;" onclick="openModal('aboutOverlay')">About & Legal</button>
-<button class="btn" style="background: var(--danger);" onclick="clearAllData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
+<button class="btn" style="background: #6b7280; margin-bottom:0.5rem;" onclick="openModal('aboutOverlay')">About & Legal</button>
+<button class="btn" style="background: var(--danger); margin-bottom:1rem;" onclick="clearAllData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
 </div>
 
 <div id="termsOverlay">
@@ -203,6 +211,18 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <button class="btn" style="background: var(--success);" onclick="requestGeoPermissionAndEnter()">AGREE & ENTER</button>
 </div>
 </div>
+</div>
+
+<div id="projectManagerOverlay" class="modal-bg">
+  <div class="modal-content glass-panel" style="max-width: 450px;">
+    <div class="flex justify-between items-center mb-3">
+      <h2 style="font-size: 1.2rem; font-weight: 900; color: var(--accent);">SELECT OR SWITCH PROJECT</h2>
+      <button onclick="closeModal('projectManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+    </div>
+    <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.75rem;">Choose an active project file below:</p>
+    <div id="projectListContainer" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
+    <button class="btn" style="background: var(--success);" onclick="createNewProject(); closeModal('projectManagerOverlay');">CREATE NEW PROJECT</button>
+  </div>
 </div>
 
 <div id="dataHubOverlay" class="modal-bg">
@@ -851,6 +871,7 @@ window.closeDrawer = function() { document.getElementById('sideDrawer').classLis
 window.openModal = function(modalId) { 
     closeDrawer(); 
     if(modalId === 'dataHubOverlay') { loadPointManagerTable(); } 
+    if(modalId === 'projectManagerOverlay') { loadProjectManagerList(); }
     const modal = document.getElementById(modalId);
     if(modal) { modal.style.display = 'flex'; }
 };
@@ -878,10 +899,60 @@ function getPointCategory(desc) {
     return 'OTHER';
 }
 
-async function initDB() { projectsList = (await localforage.getItem('projectsList')) || [{id: "default", name: "Job 1"}]; activeProjectId = (await localforage.getItem('activeProjectId')) || "default"; refreshProjectSelector(); await loadProjectData(); }
-function refreshProjectSelector() { const sel = document.getElementById('projectSelector'); sel.innerHTML = ''; projectsList.forEach(p => { sel.add(new Option(p.name, p.id, false, p.id === activeProjectId)); }); }
-window.createNewProject = async function() { const name = prompt("Enter new project name:"); if(!name) return; const id = "proj_" + Date.now(); projectsList.push({id:id, name:name}); await localforage.setItem('projectsList', projectsList); await switchProject(id); }
-window.switchProject = async function(id) { activeProjectId = id; await localforage.setItem('activeProjectId', id); await loadProjectData(); }
+async function initDB() { 
+    projectsList = (await localforage.getItem('projectsList')) || [{id: "default", name: "Job 1"}]; 
+    activeProjectId = (await localforage.getItem('activeProjectId')) || "default"; 
+    updateActiveProjectUI(); 
+    await loadProjectData(); 
+}
+
+function updateActiveProjectUI() {
+    const currentObj = projectsList.find(p => p.id === activeProjectId);
+    const displayName = currentObj ? currentObj.name : "Job 1";
+    document.getElementById('activeProjectDisplay').innerText = displayName;
+}
+
+function loadProjectManagerList() {
+    const container = document.getElementById('projectListContainer');
+    container.innerHTML = '';
+    projectsList.forEach(p => {
+        const item = document.createElement('div');
+        item.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 0.6rem 1rem; border-radius: 0.5rem; border: 1px solid var(--glass-border);";
+        const isCurrent = p.id === activeProjectId;
+        item.innerHTML = `
+            <span style="font-weight: 900; color: ${isCurrent ? 'var(--accent)' : 'white'};">${p.name} ${isCurrent ? '(ACTIVE)' : ''}</span>
+            <button class="btn" style="background: ${isCurrent ? '#4b5563' : 'var(--accent)'}; font-size: 0.7rem; padding: 0.3rem 0.6rem; width: auto;" ${isCurrent ? 'disabled' : ''} onclick="switchProject('${p.id}'); closeModal('projectManagerOverlay');">SWITCH</button>
+        `;
+        container.appendChild(item);
+    });
+}
+
+window.createNewProject = async function() {
+    const name = prompt("Enter new project name:");
+    if(!name) return;
+    const id = "proj_" + Date.now();
+    projectsList.push({id: id, name: name});
+    await localforage.setItem('projectsList', projectsList);
+    await switchProject(id);
+};
+
+window.renameActiveProject = async function() {
+    const currentObj = projectsList.find(p => p.id === activeProjectId);
+    const currentName = currentObj ? currentObj.name : "Job 1";
+    const newName = prompt("Rename active project:", currentName);
+    if(!newName) return;
+    projectsList = projectsList.map(p => p.id === activeProjectId ? {id: p.id, name: newName} : p);
+    await localforage.setItem('projectsList', projectsList);
+    updateActiveProjectUI();
+    alert(`Project renamed to ${newName}`);
+};
+
+window.switchProject = async function(id) { 
+    activeProjectId = id; 
+    await localforage.setItem('activeProjectId', id); 
+    updateActiveProjectUI();
+    await loadProjectData(); 
+};
 
 async function loadProjectData() { 
     droppedPins.forEach(p => map.removeLayer(p)); droppedPins = []; 
@@ -1107,7 +1178,6 @@ map.on('click', async function(e) {
     if(e.originalEvent.target.closest('.leaflet-popup') || e.originalEvent.target.closest('.side-tools') || e.originalEvent.target.closest('.top-bar') || e.originalEvent.target.closest('#bullseyePanel')) return;
     const lat = e.latlng.lat; const lng = e.latlng.lng;
     
-    // Check if we are selecting points for COGO Inverse
     const cogoModal = document.getElementById('cogoSuiteOverlay');
     if (cogoModal.style.display === 'flex') {
         const closestPt = pinData.reduce((prev, curr) => {
