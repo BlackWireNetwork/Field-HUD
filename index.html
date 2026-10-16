@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.4";
+const CURRENT_VERSION = "1.5";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -119,6 +119,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
     <div id="telDistHeader" style="font-size: 1.1rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
     <div id="telDirectionArrow" style="font-size: 0.85rem; font-weight: 900; color: #38bdf8; margin-left: 0.4rem;">NORTH</div>
     <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.4rem;">VISUAL</button>
+    <button onclick="clearStakeoutTarget()" style="background:#ef4444; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.3rem;">X</button>
 </div>
 <div id="telDeltas" style="font-size: 0.7rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.1rem;">DN: -- | DE: --</div>
 </div>
@@ -198,7 +199,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">SETTINGS & HELP</h2>
 <button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="openModal('rtkOverlay')">RTK Connectivity</button>
 <button class="btn" style="background: #6b7280; margin-bottom:0.5rem;" onclick="openModal('aboutOverlay')">About & Legal</button>
-<button class="btn" style="background: var(--danger); margin-bottom:1rem;" onclick="clearAllData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
+<button class="btn" style="background: var(--danger); margin-bottom:1rem;" onclick="clearActiveProjectData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
 </div>
 
 <div id="termsOverlay">
@@ -500,30 +501,33 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="helpOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 700px;">
 <div class="flex justify-between items-center mb-2">
-<h2 style="font-size: 1.5rem; font-weight: 900; color: #fcd34d;">FIELD MANUAL</h2>
+<h2 style="font-size: 1.4rem; font-weight: 900; color: #fcd34d;">FIELD MANUAL & WORKFLOW GUIDE</h2>
 <button onclick="closeModal('helpOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
-<p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.75rem;">Engineering-grade field guidelines and operational quick-start procedures.</p>
+<p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.75rem;">Complete breakdown of app buttons, features, and professional field use cases.</p>
 <div class="help-grid" style="max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
     <div class="help-card">
-        <h3>1. GPS Storing & Averaging</h3>
-        <p>Tap STORE GPS to trigger a 5-second averaging countdown. The app records multiple epochs, averages the coordinates to cancel out multipath/jitter, and flags any point outside your QC Tolerance setting.</p>
+        <h3>1. Top HUD Toolbar Buttons</h3>
+        <p><b>MENU:</b> Opens project files, data exports, CAD layers, and settings.<br>
+           <b>BAT (Battery Saver):</b> Turns screen black to save battery while keeping GPS tracking alive.<br>
+           <b>SET:</b> Access coordinate systems, units, and tolerances.<br>
+           <b>GPS:</b> Instantly re-centers map on your current location.<br>
+           <b>HLP:</b> Opens this field manual.</p>
     </div>
     <div class="help-card">
-        <h3>2. Smart Linework Coding</h3>
-        <p>Linear features (e.g., EP, BOC, FL, TC, SW) automatically string together on the map. Use the modifier bar: tap B (Begin) on the first shot to start a fresh polyline string, and E (End) on the final shot to terminate it.</p>
+        <h3>2. Point Storing & QC Averaging</h3>
+        <p><b>STORE GPS:</b> Triggers a 5-second multi-epoch averaging countdown to cancel out phone GPS jitter.<br>
+           <b>STORE MAP:</b> Instantly drops a point right where the red crosshairs are centered.<br>
+           <b>SNAP PHOTO:</b> Attaches a camera image inspection to your next stored point.</p>
     </div>
     <div class="help-card">
-        <h3>3. RTK NMEA Bridge Setup</h3>
-        <p>To feed high-precision RTK data from your GNSS receiver (Topcon/Trimble): pair via Bluetooth, open Lefebure NTRIP, set receiver output to TCP Server on port 50000. Field HUD's Python backend automatically streams true centimeter accuracy.</p>
+        <h3>3. Smart Linework & Feature Codes</h3>
+        <p>Type codes like <b>EP</b> (Edge of Pavement) or <b>BOC</b> (Back of Curb) in the search bar. Use modifier buttons: <b>B</b> starts a new line string, and <b>E</b> terminates it automatically on the map.</p>
     </div>
     <div class="help-card">
-        <h3>4. COGO Suite & Inverses</h3>
-        <p>Select any two points on the map to activate the top selection bar. Tap INV for inverse bearing and horizontal distance, or STA/OFF to calculate station and offset relative to a baseline or CAD alignment.</p>
-    </div>
-    <div class="help-card">
-        <h3>5. CAD Layers & Point Filters</h3>
-        <p>Import GeoJSON vector and surface files (`.geojson`/`.txt`). Use the Layer & Point Filters Manager to toggle individual CAD layers or filter out point category types on the map overlay.</p>
+        <h3>4. COGO Suite & Stakeout Navigation</h3>
+        <p><b>INVERSE:</b> Tap two map points to compute bearing and distance.<br>
+           <b>STAKE OUT:</b> Locks onto a point to view real-time distance, delta North/East, and a visual bullseye radar screen.</p>
     </div>
 </div>
 </div>
@@ -532,14 +536,23 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div id="rtkOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 600px;">
 <div class="flex justify-between items-center mb-2">
-<h2 style="font-size: 1.5rem; font-weight: 900; color: #4b5563;">RTK NMEA BRIDGE</h2>
+<h2 style="font-size: 1.4rem; font-weight: 900; color: #4b5563;">RTK GNSS CONNECTIVITY GUIDE</h2>
 <button onclick="closeModal('rtkOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
-<p style="font-size: 0.85rem; color: #9ca3af; margin-bottom: 1rem;">To get True RTK Accuracy into Field HUD:</p>
+<p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 1rem;">Choose either connection method below to feed centimeter-level RTK data into Field HUD:</p>
 <div class="help-grid">
-    <div class="help-card"><h3>Step 1: Connect Receiver</h3><p>Pair your Topcon/Trimble receiver via Bluetooth.</p></div>
-    <div class="help-card"><h3>Step 2: Start Lefebure NTRIP</h3><p>Open Lefebure. Go to Receiver Settings -> Output to TCP Server. Set the port to 50000.</p></div>
-    <div class="help-card"><h3>Step 3: Connect</h3><p>Once Lefebure has an RTK fix, it broadcasts raw NMEA. Field HUD's background Python server automatically connects to port 50000 and displays True Precision on the HUD.</p></div>
+    <div class="help-card">
+        <h3>Method A: NTRIP Client Setup (Direct VRS)</h3>
+        <p>1. Open an NTRIP client app on your device (e.g., Lefebure NTRIP).<br>
+           2. Enter your state VRS network mountpoint, IP, port, username, and password.<br>
+           3. Connect to your Bluetooth GNSS receiver. The app streams corrected RTK data straight into the browser.</p>
+    </div>
+    <div class="help-card">
+        <h3>Method B: TCP Server / Python Bridge (Termux)</h3>
+        <p>1. Pair your GNSS receiver via Bluetooth.<br>
+           2. Configure your field controller software to broadcast raw NMEA sentences as a <b>TCP Server on port 50000</b>.<br>
+           3. Run the lightweight Python bridge script in Termux to pipe the NMEA stream seamlessly into the HUD.</p>
+    </div>
 </div>
 </div>
 </div>
@@ -762,10 +775,20 @@ window.setStakeoutTarget = function(idx) {
     alert(`Target Locked: PT ${activeTargetPoint.id} (${activeTargetPoint.desc})`);
 };
 
+window.clearStakeoutTarget = function() {
+    activeTargetPoint = null;
+    document.getElementById('targetIndicator').style.display = 'none';
+    bullseyeVisible = false;
+    document.getElementById('bullseyePanel').style.display = 'none';
+};
+
 window.centerOnPoint = function(lat, lng) { map.setView([lat, lng], 20); map.closePopup(); };
 
 window.deletePointFromMap = async function(idx) {
     if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
+    if (activeTargetPoint && activeTargetPoint.id === pinData[idx].id) {
+        clearStakeoutTarget();
+    }
     map.removeLayer(droppedPins[idx]); 
     pinData.splice(idx, 1); 
     droppedPins.splice(idx, 1);
@@ -845,6 +868,9 @@ window.updatePoint = async function(idx) {
 
 window.deletePointManager = async function(idx) {
     if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
+    if (activeTargetPoint && activeTargetPoint.id === pinData[idx].id) {
+        clearStakeoutTarget();
+    }
     map.removeLayer(droppedPins[idx]); pinData.splice(idx, 1); droppedPins.splice(idx, 1);
     await savePinsToDB(); loadPointManagerTable(); rebuildSmartLinework();
 };
@@ -954,12 +980,26 @@ window.switchProject = async function(id) {
     await loadProjectData(); 
 };
 
+window.clearActiveProjectData = async function() {
+    const currentObj = projectsList.find(p => p.id === activeProjectId);
+    const jobName = currentObj ? currentObj.name : "Active Project";
+    if (!confirm(`Are you sure you want to clear all points and linework in "${jobName}"?`)) return;
+    pinData = [];
+    await savePinsToDB();
+    droppedPins.forEach(p => map.removeLayer(p));
+    droppedPins = [];
+    Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); });
+    activeStrings = {};
+    clearStakeoutTarget();
+    alert(`Project "${jobName}" has been cleared.`);
+};
+
 async function loadProjectData() { 
     droppedPins.forEach(p => map.removeLayer(p)); droppedPins = []; 
     Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); }); activeStrings = {};
     cogoLineLayer.setLatLngs([]); stationLineLayer.setLatLngs([]); 
     pinData = (await localforage.getItem(activeProjectId)) || []; 
-    pinData.forEach((pt, i) => renderPin(pt, i)); rebuildSmartLinework(); clearCogoSelection();
+    pinData.forEach((pt, i) => renderPin(pt, i)); rebuildSmartLinework(); clearCogoSelection(); clearStakeoutTarget();
 }
 
 async function savePinsToDB() { await localforage.setItem(activeProjectId, pinData); }
