@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.2";
+const CURRENT_VERSION = "1.3";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -44,9 +44,9 @@ body.scale-large { --ui-scale: 1.15rem; --btn-pad: 1rem; }
 html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; font-family: 'Inter', sans-serif; color: white; background: #000; font-size: var(--ui-scale); }
 #map { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; }
 .glass-panel { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-.top-bar { position: absolute; top: 1rem; left: 4.5rem; right: 5.5rem; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; }
-.hamburger-btn { position: absolute; top: 1rem; left: 1rem; z-index: 60; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; cursor: pointer; }
-.side-tools { position: absolute; top: 1rem; right: 1rem; z-index: 50; display: flex; flex-direction: column; gap: 0.5rem; }
+.top-bar { position: absolute; top: 1rem; left: 4.5rem; right: 8.5rem; z-index: 50; display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; }
+.hamburger-btn { position: absolute; top: 1rem; left: 1rem; z-index: 60; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; font-weight: 900; }
+.side-tools { position: absolute; top: 1rem; right: 1rem; z-index: 50; display: flex; flex-direction: column; gap: 0.4rem; }
 .bottom-drawer { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; z-index: 50; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .side-drawer { position: absolute; top: 0; left: -320px; width: 300px; height: 100vh; z-index: 2000; background: var(--panel-bg); transition: left 0.3s ease; padding: 1.5rem; padding-bottom: 6rem; overflow-y: auto; border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 1rem; }
 .side-drawer.open { left: 0; }
@@ -62,7 +62,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 .btn { padding: var(--btn-pad); border-radius: 0.5rem; font-weight: 900; text-transform: uppercase; cursor: pointer; display: flex; justify-content: center; align-items: center; border: none; color: white; font-size: calc(var(--ui-scale) * 0.85); width: 100%; transition: transform 0.1s; }
 .btn:active { transform: scale(0.96); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-icon { width: 2.85rem; height: 2.85rem; border-radius: 50%; font-size: 1.15rem; padding: 0; }
+.btn-icon { width: 2.75rem; height: 2.75rem; border-radius: 50%; font-size: 0.85rem; padding: 0; font-weight: 900; }
 .dropdown-container { position: relative; flex-grow: 1; }
 .dropdown-list { display: none; position: absolute; bottom: calc(100% + 8px); left: 0; width: 320px; max-height: 260px; overflow-y: auto; background: var(--panel-bg); border: 2px solid var(--accent); border-radius: 0.75rem; z-index: 2000; box-shadow: 0 -10px 25px rgba(0,0,0,0.8); }
 .dropdown-item { padding: 0.8rem 1rem; cursor: pointer; font-weight: 600; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
@@ -90,7 +90,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 .help-card { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid var(--accent); }
 .help-card h3 { font-size: 1.05rem; font-weight: 900; color: white; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.4rem; }
 .help-card p { font-size: 0.85rem; color: #9ca3af; line-height: 1.5; margin: 0; }
-#targetIndicator { display: none; background: rgba(0,0,0,0.8); padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 2px solid var(--glass-border); transition: border-color 0.3s, background-color 0.3s; }
+#targetIndicator { display: none; background: rgba(0,0,0,0.8); padding: 0.4rem 0.6rem; border-radius: 0.5rem; border: 2px solid var(--glass-border); transition: border-color 0.3s, background-color 0.3s; }
 #targetIndicator.near { border-color: var(--warning); background: rgba(245, 158, 11, 0.2); }
 #targetIndicator.close { border-color: var(--success); background: rgba(16, 185, 129, 0.2); }
 #cogoSelectionBar { position: absolute; top: 4.5rem; left: 50%; transform: translateX(-50%); z-index: 900; background: var(--glass); border: 2px solid var(--warning); padding: 0.5rem 1rem; border-radius: 2rem; display: none; align-items: center; gap: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.5); backdrop-filter: blur(8px); white-space: nowrap; }
@@ -103,23 +103,22 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 
 <div id="map"></div>
 <div class="crosshair"></div>
-<button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">Menu</button>
+<button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">MENU</button>
 
 <div class="top-bar glass-panel">
 <div>
-<h1 style="font-size: 1.25rem; font-weight: 900; color: var(--accent); margin: 0;">FIELD HUD</h1>
-<p id="statusText" style="font-size: 0.8rem; font-family: monospace; color: #9ca3af; font-weight: bold;">INITIALIZING GPS...</p>
+<h1 style="font-size: 1.1rem; font-weight: 900; color: var(--accent); margin: 0;">FIELD HUD</h1>
+<p id="statusText" style="font-size: 0.75rem; font-family: monospace; color: #9ca3af; font-weight: bold;">GPS INIT...</p>
 </div>
 <div style="text-align: right;">
-<div id="topSurfacesText" style="font-size: 0.75rem; font-family: monospace; color: #a855f7; font-weight: bold; margin-bottom: 0.2rem; display:none;">DTM: --</div>
+<div id="activeCrsLabel" style="font-size: 0.65rem; font-family: monospace; color: #38bdf8; font-weight: bold; margin-bottom: 0.1rem;">CRS: AUTO</div>
 <div id="targetIndicator">
 <div style="display:flex; justify-content:space-between; align-items:center;">
-    <div id="telDistHeader" style="font-size: 1.2rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
-    <div id="telDirectionArrow" style="font-size: 1rem; font-weight: 900; color: #38bdf8; margin-left: 0.5rem;">NORTH</div>
-    <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.6rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.5rem;">VISUAL</button>
+    <div id="telDistHeader" style="font-size: 1.1rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
+    <div id="telDirectionArrow" style="font-size: 0.85rem; font-weight: 900; color: #38bdf8; margin-left: 0.4rem;">NORTH</div>
+    <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.4rem;">VISUAL</button>
 </div>
-<div id="telDeltas" style="font-size: 0.75rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.2rem;">DN: -- | DE: --</div>
-<div id="telCutFill" style="font-size: 0.75rem; font-family: monospace; color: #38bdf8; font-weight: 900; margin-top:0.1rem; display:none;">C/F: --</div>
+<div id="telDeltas" style="font-size: 0.7rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.1rem;">DN: -- | DE: --</div>
 </div>
 </div>
 </div>
@@ -137,10 +136,10 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 </div>
 
 <div class="side-tools">
-<button class="btn btn-icon glass-panel" onclick="togglePocketMode()" title="Pocket Battery Saver">BAT</button>
-<button class="btn btn-icon glass-panel" onclick="openModal('settingsOverlay')" style="color: #60a5fa;" title="HUD Settings">SET</button>
-<button class="btn btn-icon glass-panel" id="centerBtn" style="color: var(--accent);" title="Center On GPS">GPS</button>
-<button class="btn btn-icon glass-panel" onclick="openModal('helpOverlay')" style="color: #fcd34d;" title="Field Manual">HLP</button>
+<button class="btn btn-icon glass-panel" onclick="togglePocketMode()" title="Battery Saver">BAT</button>
+<button class="btn btn-icon glass-panel" onclick="openModal('settingsOverlay')" style="color: #60a5fa;" title="Settings">SET</button>
+<button class="btn btn-icon glass-panel" id="centerBtn" style="color: var(--accent);" title="Center GPS">GPS</button>
+<button class="btn btn-icon glass-panel" onclick="openModal('helpOverlay')" style="color: #fcd34d;" title="Manual">HLP</button>
 </div>
 
 <div class="bottom-drawer glass-panel">
@@ -310,18 +309,19 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
       <button id="csTabBtn-conv" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('conv')">Conv.</button>
     </div>
     <div id="cs-inverse">
-        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>INV</b>.</p>
+        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;" id="inverseInstruction">Tap two points on the main map to calculate inverse.</p>
         <div class="flex justify-between py-2 border-b border-gray-700 font-monospace text-sm mb-2">
-            <span>FROM: <b id="cogoPtAText" style="color:#38bdf8;">--</b></span>
-            <span>TO: <b id="cogoPtBText" style="color:#38bdf8;">--</b></span>
+            <span>FROM (PT): <b id="cogoPtAText" style="color:#38bdf8;">--</b></span>
+            <span>TO (PT): <b id="cogoPtBText" style="color:#38bdf8;">--</b></span>
         </div>
         <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace;">
             <div class="flex justify-between py-1 border-b border-gray-700"><span>Bearing:</span> <span id="cogoBearing" style="color: #38bdf8; font-weight: bold;">--</span></div>
             <div class="flex justify-between py-1"><span>Horizontal Dist:</span> <span id="cogoDist" style="color: var(--success); font-weight: bold;">-- FT</span></div>
         </div>
+        <button class="btn" style="background: var(--danger); margin-top: 1rem;" onclick="clearCogoSelection()">CLEAR SELECTION</button>
     </div>
     <div id="cs-station" style="display:none;">
-        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select two points on the map, then hit <b>STA/OFF</b>.</p>
+        <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select an alignment polyline and a target point on the map.</p>
         <div class="flex justify-between py-2 border-b border-gray-700 font-monospace text-sm mb-2">
             <span>ALIGN: <b id="staPtAText" style="color:#10b981;">--</b></span>
             <span>TO: <b id="staPtBText" style="color:#10b981;">--</b></span>
@@ -357,18 +357,17 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         <div style="background:rgba(255,255,255,0.05); padding:0.3rem; border-radius:0.25rem;">IN: <span id="resIn" style="color:var(--warning); font-weight:bold;">--</span></div>
         <div style="background:rgba(255,255,255,0.05); padding:0.3rem; border-radius:0.25rem;">CM: <span id="resCm" style="color:#38bdf8; font-weight:bold;">--</span></div>
         </div>
-        <p style="font-size: 0.7rem; color: var(--accent); font-weight: bold; margin-bottom: 0.25rem; text-transform: uppercase;">Quick Lookup Cheat Sheet</p>
+        <p style="font-size: 0.7rem; color: var(--accent); font-weight: bold; margin-bottom: 0.25rem; text-transform: uppercase;">Standard Engineering Cheat Sheet</p>
         <div style="max-height: 140px; overflow-y: auto;">
         <table class="field-book-table" style="font-size: 0.75rem; margin-top:0;">
         <thead><tr><th>Decimal Ft</th><th>Inches</th><th>Metric (cm)</th></tr></thead>
         <tbody>
-            <tr><td>0.083' (1")</td><td>1.00"</td><td>2.54 cm</td></tr>
-            <tr><td>0.100' (1.2")</td><td>1.20"</td><td>3.05 cm</td></tr>
-            <tr><td>0.250' (3")</td><td>3.00"</td><td>7.62 cm</td></tr>
-            <tr><td>0.500' (6")</td><td>6.00"</td><td>15.24 cm</td></tr>
-            <tr><td>0.750' (9")</td><td>9.00"</td><td>22.86 cm</td></tr>
-            <tr><td>1.000' (12")</td><td>12.00"</td><td>30.48 cm</td></tr>
-            <tr><td>3.281'</td><td>39.37"</td><td>100.00 cm (1m)</td></tr>
+            <tr><td>0.050'</td><td>0.60"</td><td>1.52 cm</td></tr>
+            <tr><td>0.100'</td><td>1.20"</td><td>3.05 cm</td></tr>
+            <tr><td>0.250'</td><td>3.00"</td><td>7.62 cm</td></tr>
+            <tr><td>0.500'</td><td>6.00"</td><td>15.24 cm</td></tr>
+            <tr><td>0.750'</td><td>9.00"</td><td>22.86 cm</td></tr>
+            <tr><td>1.000'</td><td>12.00"</td><td>30.48 cm</td></tr>
         </tbody>
         </table>
         </div>
@@ -390,12 +389,12 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <button onclick="closeModal('settingsOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div class="telemetry-row"><span>SPC Zone:</span>
-<select id="spcZoneSelect">
+<select id="spcZoneSelect" onchange="updateCrsDisplay()">
 <option value="AUTO" selected>Auto-Detect (Global GPS)</option>
 <option value="EPSG:32133">NAD83 South Carolina (ftUS)</option>
-<option value="EPSG:4326">WGS84 (Raw Lat/Lon)</option>
 <option value="EPSG:2264">NAD83 NC State Plane (ftUS)</option>
 <option value="EPSG:2236">NAD83 FL East (ftUS)</option>
+<option value="EPSG:4326">WGS84 (Raw Lat/Lon)</option>
 </select>
 </div>
 <div class="telemetry-row"><span>Map Engine:</span>
@@ -599,8 +598,8 @@ mapLayers.satellite.addTo(map); let currentMapLayer = mapLayers.satellite;
 const regridLayer = L.tileLayer('https://tiles.arcgis.com/tiles/KzeiCaQsMoeCfoCq/arcgis/rest/services/Regrid_Nationwide_Parcel_Boundaries_v1/MapServer/tile/{z}/{y}/{x}', { pane: 'parcels', maxZoom: 22, maxNativeZoom: 17, opacity: 1.0 });
 regridLayer.addTo(map);
 
-window.changeMapLayer = function(_0x1a){map.removeLayer(currentMapLayer);currentMapLayer=mapLayers[_0x1a];currentMapLayer.addTo(map);};
-window.toggleRegridLayer = function(_0x2b){if(_0x2b==='show')regridLayer.addTo(map);else map.removeLayer(regridLayer);};
+window.changeMapLayer = function(layerName){map.removeLayer(currentMapLayer);currentMapLayer=mapLayers[layerName];currentMapLayer.addTo(map);};
+window.toggleRegridLayer = function(state){if(state==='show')regridLayer.addTo(map);else map.removeLayer(regridLayer);};
 
 window.qcTolerance = 0.15;
 window.ttsEnabled = false;
@@ -615,7 +614,6 @@ let lastKnownLon = null;
 let lastKnownAccuracy = 999;
 let activeTargetPoint = null;
 
-// Auto-detect Global State Plane or UTM based on longitude/latitude
 function getAutoCRS(lat, lon) {
     if (lat >= 32.0 && lat <= 35.2 && lon >= -83.5 && lon <= -78.5) {
         return "EPSG:32133"; // NAD83 South Carolina ftUS
@@ -624,7 +622,6 @@ function getAutoCRS(lat, lon) {
     } else if (lat >= 24.3 && lat <= 31.0 && lon >= -87.6 && lon <= -79.8) {
         return "EPSG:2236"; // NAD83 Florida East ftUS
     } else {
-        // Fallback to standard UTM zone based on longitude for global testers
         const utmZone = Math.floor((lon + 180) / 6) + 1;
         const epsg = lat >= 0 ? (32600 + utmZone) : (32700 + utmZone);
         proj4.defs(`EPSG:${epsg}`, `+proj=utm +zone=${utmZone} ${lat >= 0 ? '' : '+south '}+ellps=WGS84 +datum=WGS84 +units=m +no_defs`);
@@ -632,34 +629,54 @@ function getAutoCRS(lat, lon) {
     }
 }
 
+function getActiveCRSCoord(lat, lon) {
+    let zone = document.getElementById('spcZoneSelect').value;
+    if (zone === "AUTO") {
+        zone = getAutoCRS(lat, lon);
+    }
+    return proj4('EPSG:4326', zone, [lon, lat]);
+}
+
+function updateCrsDisplay() {
+    const zone = document.getElementById('spcZoneSelect').value;
+    let label = "CRS: AUTO";
+    if (zone === "EPSG:32133") label = "CRS: SC SPC";
+    else if (zone === "EPSG:2264") label = "CRS: NC SPC";
+    else if (zone === "EPSG:2236") label = "CRS: FL EAST";
+    else if (zone === "EPSG:4326") label = "CRS: WGS84";
+    else if (zone === "AUTO" && lastKnownLat) label = `CRS: AUTO (${getAutoCRS(lastKnownLat, lastKnownLon).replace('EPSG:','')})`;
+    document.getElementById('activeCrsLabel').innerText = label;
+}
+
 function startGeoTracking() {
     if ('geolocation' in navigator) {
         navigator.geolocation.watchPosition(
-            (_0x3c) => {
-                lastKnownLat = _0x3c.coords.latitude;
-                lastKnownLon = _0x3c.coords.longitude;
-                lastKnownAccuracy = _0x3c.coords.accuracy * 3.28084;
-                const _0x4d = [lastKnownLat, lastKnownLon];
+            (pos) => {
+                lastKnownLat = pos.coords.latitude;
+                lastKnownLon = pos.coords.longitude;
+                lastKnownAccuracy = pos.coords.accuracy * 3.28084;
+                const latlng = [lastKnownLat, lastKnownLon];
                 if (!userMarker) {
-                    userMarker = L.marker(_0x4d, {
+                    userMarker = L.marker(latlng, {
                         icon: L.divIcon({ className: 'blue-dot', iconSize: [20, 20] })
                     }).addTo(map);
                 } else {
-                    userMarker.setLatLng(_0x4d);
+                    userMarker.setLatLng(latlng);
                 }
+                updateCrsDisplay();
                 if (Date.now() - lastNmeaTime > 5000) {
-                    const _0x5e = document.getElementById('statusText');
-                    _0x5e.innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
-                    _0x5e.style.color = '#38bdf8';
+                    const statusEl = document.getElementById('statusText');
+                    statusEl.innerText = `PHONE GPS (±${lastKnownAccuracy.toFixed(1)} FT)`;
+                    statusEl.style.color = '#38bdf8';
                 }
                 if (activeTargetPoint) {
                     updateActiveStakeoutTelemetry();
                 }
             },
-            (_0x6f) => {
-                const _0x7a = document.getElementById('statusText');
-                _0x7a.innerText = 'GPS PERMISSION DENIED';
-                _0x7a.style.color = 'var(--danger)';
+            (err) => {
+                const statusEl = document.getElementById('statusText');
+                statusEl.innerText = 'GPS PERMISSION DENIED';
+                statusEl.style.color = 'var(--danger)';
             },
             { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
         );
@@ -678,117 +695,109 @@ window.requestGeoPermissionAndEnter = function() {
 };
 
 let wakeLock = null;
-window.requestWakeLock = async function() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (_0x8b) {} };
+window.requestWakeLock = async function() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} };
 document.addEventListener('visibilitychange', () => { if (wakeLock !== null && document.visibilityState === 'visible') window.requestWakeLock(); });
 
 let bullseyeVisible = false;
 window.toggleBullseye = function() { bullseyeVisible = !bullseyeVisible; document.getElementById('bullseyePanel').style.display = bullseyeVisible ? 'block' : 'none'; };
 const bsPanel = document.getElementById('bullseyePanel');
 let isDragging = false, offsetX, offsetY;
-bsPanel.addEventListener('mousedown', _0x9c => { if(_0x9c.target.tagName==='BUTTON')return; isDragging = true; offsetX = _0x9c.clientX - bsPanel.offsetLeft; offsetY = _0x9c.clientY - bsPanel.offsetTop; });
-bsPanel.addEventListener('touchstart', _0xad => { if(_0xad.target.tagName==='BUTTON')return; isDragging = true; offsetX = _0xad.touches[0].clientX - bsPanel.offsetLeft; offsetY = _0xad.touches[0].clientY - bsPanel.offsetTop; });
-document.addEventListener('mousemove', _0xbe => { if(isDragging) { bsPanel.style.left = (_0xbe.clientX - offsetX) + 'px'; bsPanel.style.top = (_0xbe.clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
-document.addEventListener('touchmove', _0xcf => { if(isDragging) { bsPanel.style.left = (_0xcf.touches[0].clientX - offsetX) + 'px'; bsPanel.style.top = (_0xcf.touches[0].clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
+bsPanel.addEventListener('mousedown', e => { if(e.target.tagName==='BUTTON')return; isDragging = true; offsetX = e.clientX - bsPanel.offsetLeft; offsetY = e.clientY - bsPanel.offsetTop; });
+bsPanel.addEventListener('touchstart', e => { if(e.target.tagName==='BUTTON')return; isDragging = true; offsetX = e.touches[0].clientX - bsPanel.offsetLeft; offsetY = e.touches[0].clientY - bsPanel.offsetTop; });
+document.addEventListener('mousemove', e => { if(isDragging) { bsPanel.style.left = (e.clientX - offsetX) + 'px'; bsPanel.style.top = (e.clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
+document.addEventListener('touchmove', e => { if(isDragging) { bsPanel.style.left = (e.touches[0].clientX - offsetX) + 'px'; bsPanel.style.top = (e.touches[0].clientY - offsetY) + 'px'; bsPanel.style.bottom = 'auto'; bsPanel.style.right = 'auto'; }});
 document.addEventListener('mouseup', () => isDragging = false); document.addEventListener('touchend', () => isDragging = false);
 
-function drawBullseye(_0x1b, _0x2c, _0x3d) {
+function drawBullseye(dx, dy, dist) {
     if(!bullseyeVisible) return;
-    const _0x4e = document.getElementById('bullseyeCanvas'); const _0x5f = _0x4e.getContext('2d'); const _0x60 = _0x4e.width, _0x71 = _0x4e.height; _0x5f.clearRect(0, 0, _0x60, _0x71);
-    _0x5f.strokeStyle = 'rgba(255,255,255,0.2)'; _0x5f.lineWidth = 1; _0x5f.beginPath(); _0x5f.arc(_0x60/2, _0x71/2, _0x60/2 - 10, 0, 2*Math.PI); _0x5f.stroke(); _0x5f.beginPath(); _0x5f.arc(_0x60/2, _0x71/2, (_0x60/2 - 10)/2, 0, 2*Math.PI); _0x5f.stroke();
-    _0x5f.strokeStyle = 'rgba(255,255,255,0.4)'; _0x5f.lineWidth = 2; _0x5f.beginPath(); _0x5f.moveTo(_0x60/2, 10); _0x5f.lineTo(_0x60/2, _0x71-10); _0x5f.moveTo(10, _0x71/2); _0x5f.lineTo(_0x60-10, _0x71/2); _0x5f.stroke();
-    const _0x82 = 20; const _0x93 = Math.min(_0x3d, _0x82); const _0xa4 = Math.atan2(_0x2c, _0x1b); 
-    const _0xb5 = _0x60/2 + Math.sin(_0xa4) * (_0x93 / _0x82) * (_0x60/2 - 10); const _0xc6 = _0x71/2 - Math.cos(_0xa4) * (_0x93 / _0x82) * (_0x71/2 - 10);
-    _0x5f.fillStyle = _0x3d < 2.0 ? '#10b981' : '#f59e0b'; _0x5f.beginPath(); _0x5f.arc(_0xb5, _0xc6, 8, 0, 2*Math.PI); _0x5f.fill(); _0x5f.strokeStyle = 'white'; _0x5f.lineWidth = 2; _0x5f.stroke();
+    const canvas = document.getElementById('bullseyeCanvas'); const ctx = canvas.getContext('2d'); const w = canvas.width, h = canvas.height; ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(w/2, h/2, w/2 - 10, 0, 2*Math.PI); ctx.stroke(); ctx.beginPath(); ctx.arc(w/2, h/2, (w/2 - 10)/2, 0, 2*Math.PI); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(w/2, 10); ctx.lineTo(w/2, h-10); ctx.moveTo(10, h/2); ctx.lineTo(w-10, h/2); ctx.stroke();
+    const maxR = 20; const scaleR = Math.min(dist, maxR); const angle = Math.atan2(dy, dx); 
+    const px = w/2 + Math.sin(angle) * (scaleR / maxR) * (w/2 - 10); const py = h/2 - Math.cos(angle) * (scaleR / maxR) * (h/2 - 10);
+    ctx.fillStyle = dist < 2.0 ? '#10b981' : '#f59e0b'; ctx.beginPath(); ctx.arc(px, py, 8, 0, 2*Math.PI); ctx.fill(); ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
 }
 
-function updateStakeoutArrow(_0x1c, _0x2d) {
-    const _0x3e = Math.atan2(_0x2d, _0x1c);
-    let _0x4f = _0x3e * (180 / Math.PI);
-    if (_0x4f < 0) _0x4f += 360;
-    let _0x50 = 'NORTH';
-    if (_0x4f >= 22.5 && _0x4f < 67.5) _0x50 = 'NE';
-    else if (_0x4f >= 67.5 && _0x4f < 112.5) _0x50 = 'EAST';
-    else if (_0x4f >= 112.5 && _0x4f < 157.5) _0x50 = 'SE';
-    else if (_0x4f >= 157.5 && _0x4f < 202.5) _0x50 = 'SOUTH';
-    else if (_0x4f >= 202.5 && _0x4f < 247.5) _0x50 = 'SW';
-    else if (_0x4f >= 247.5 && _0x4f < 292.5) _0x50 = 'WEST';
-    else if (_0x4f >= 292.5 && _0x4f < 337.5) _0x50 = 'NW';
-    const _0x61 = document.getElementById('telDirectionArrow');
-    if (_0x61) _0x61.innerText = _0x50;
+function updateStakeoutArrow(dx, dy) {
+    const angle = Math.atan2(dy, dx);
+    let deg = angle * (180 / Math.PI);
+    if (deg < 0) deg += 360;
+    let dir = 'NORTH';
+    if (deg >= 22.5 && deg < 67.5) dir = 'NE';
+    else if (deg >= 67.5 && deg < 112.5) dir = 'EAST';
+    else if (deg >= 112.5 && deg < 157.5) dir = 'SE';
+    else if (deg >= 157.5 && deg < 202.5) dir = 'SOUTH';
+    else if (deg >= 202.5 && deg < 247.5) dir = 'SW';
+    else if (deg >= 247.5 && deg < 292.5) dir = 'WEST';
+    else if (deg >= 292.5 && deg < 337.5) dir = 'NW';
+    const arrowEl = document.getElementById('telDirectionArrow');
+    if (arrowEl) arrowEl.innerText = dir;
 }
 
-window.setStakeoutTarget = function(_0x1d) {
-    activeTargetPoint = pinData[_0x1d];
+window.setStakeoutTarget = function(idx) {
+    activeTargetPoint = pinData[idx];
     document.getElementById('targetIndicator').style.display = 'block';
     map.closePopup();
     updateActiveStakeoutTelemetry();
     alert(`Target Locked: PT ${activeTargetPoint.id} (${activeTargetPoint.desc})`);
 };
 
-window.centerOnPoint = function(_0x2e, _0x3f) { map.setView([_0x2e, _0x3f], 20); map.closePopup(); };
+window.centerOnPoint = function(lat, lng) { map.setView([lat, lng], 20); map.closePopup(); };
 
-window.deletePointFromMap = async function(_0x40) {
-    if(!confirm(`Delete Point ${pinData[_0x40].id}?`)) return;
-    map.removeLayer(droppedPins[_0x40]); 
-    pinData.splice(_0x40, 1); 
-    droppedPins.splice(_0x40, 1);
+window.deletePointFromMap = async function(idx) {
+    if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
+    map.removeLayer(droppedPins[idx]); 
+    pinData.splice(idx, 1); 
+    droppedPins.splice(idx, 1);
     await savePinsToDB(); 
     map.closePopup();
     rebuildSmartLinework();
 };
 
-function getActiveCRSCoord(lat, lon) {
-    let zone = document.getElementById('spcZoneSelect').value;
-    if (zone === "AUTO") {
-        zone = getAutoCRS(lat, lon);
-    }
-    return proj4('EPSG:4326', zone, [lon, lat]);
-}
-
 function updateActiveStakeoutTelemetry() {
     if (!activeTargetPoint || !lastKnownLat) return;
     const gpsCoord = getActiveCRSCoord(lastKnownLat, lastKnownLon);
     const targetCoord = getActiveCRSCoord(activeTargetPoint.lat, activeTargetPoint.lng);
-    const _0x41 = targetCoord[1] - gpsCoord[1];
-    const _0x52 = targetCoord[0] - gpsCoord[0];
-    const _0x63 = Math.sqrt((_0x41 * _0x41) + (_0x52 * _0x52));
-    document.getElementById('telDistHeader').innerText = `${_0x63.toFixed(2)} FT`;
-    document.getElementById('telDeltas').innerText = `DN: ${_0x41.toFixed(2)}' | DE: ${_0x52.toFixed(2)}'`;
-    updateStakeoutArrow(_0x41, _0x52);
-    drawBullseye(_0x41, _0x52, _0x63);
-    const _0x74 = document.getElementById('targetIndicator');
-    _0x74.className = '';
-    if(_0x63 < 0.2) _0x74.classList.add('close');
-    else if(_0x63 < 2.0) _0x74.classList.add('near');
+    const dn = targetCoord[1] - gpsCoord[1];
+    const de = targetCoord[0] - gpsCoord[0];
+    const dist = Math.sqrt((dn * dn) + (de * de));
+    document.getElementById('telDistHeader').innerText = `${dist.toFixed(2)} FT`;
+    document.getElementById('telDeltas').innerText = `DN: ${dn.toFixed(2)}' | DE: ${de.toFixed(2)}'`;
+    updateStakeoutArrow(dn, de);
+    drawBullseye(dn, de, dist);
+    const targetEl = document.getElementById('targetIndicator');
+    targetEl.className = '';
+    if(dist < 0.2) targetEl.classList.add('close');
+    else if(dist < 2.0) targetEl.classList.add('near');
 }
 
 let currentCapturedPhoto = null; let selPtA = null, selPtB = null;
 
-window.switchDataHubTab = function(_0x1f) {
-    ['points','files','book'].forEach(_0x20 => {
-        document.getElementById('dh-'+_0x20).style.display = (_0x20 === _0x1f) ? 'block' : 'none'; 
-        document.getElementById('dhTabBtn-'+_0x20).style.background = (_0x20 === _0x1f) ? 'var(--accent)' : '#4b5563';
+window.switchDataHubTab = function(tab) {
+    ['points','files','book'].forEach(t => {
+        document.getElementById('dh-'+t).style.display = (t === tab) ? 'block' : 'none'; 
+        document.getElementById('dhTabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563';
     });
 };
 
-window.switchCogoTab = function(_0x21) {
-    ['inverse','station','curve','conv'].forEach(_0x22 => {
-        document.getElementById('cs-'+_0x22).style.display = (_0x22 === _0x21) ? 'block' : 'none'; 
-        document.getElementById('csTabBtn-'+_0x22).style.background = (_0x22 === _0x21) ? 'var(--accent)' : '#4b5563';
+window.switchCogoTab = function(tab) {
+    ['inverse','station','curve','conv'].forEach(t => {
+        document.getElementById('cs-'+t).style.display = (t === tab) ? 'block' : 'none'; 
+        document.getElementById('csTabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563';
     });
 };
 
-window.handlePointPhoto = function(_0x23) {
-    const _0x24 = _0x23.target.files[0]; if(!_0x24) return; const _0x25 = new FileReader();
-    _0x25.onload = function(_0x26) {
-        const _0x27 = new Image(); _0x27.onload = function() {
-            const _0x28 = document.createElement('canvas'); const _0x29 = _0x28.getContext('2d');
-            const _0x2a = 800 / _0x27.width; _0x28.width = 800; _0x28.height = _0x27.height * _0x2a;
-            _0x29.drawImage(_0x27, 0, 0, _0x28.width, _0x28.height);
-            currentCapturedPhoto = _0x28.toDataURL('image/jpeg', 0.7);
+window.handlePointPhoto = function(e) {
+    const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
+    reader.onload = function(evt) {
+        const img = new Image(); img.onload = function() {
+            const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+            const ratio = 800 / img.width; canvas.width = 800; canvas.height = img.height * ratio;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            currentCapturedPhoto = canvas.toDataURL('image/jpeg', 0.7);
             document.getElementById('photoStatusIndicator').style.display = 'block';
-        }; _0x27.src = _0x26.target.result;
-    }; _0x25.readAsDataURL(_0x24);
+        }; img.src = evt.target.result;
+    }; reader.readAsDataURL(file);
 };
 
 window.copyParcelAPN = function() {
@@ -796,57 +805,57 @@ window.copyParcelAPN = function() {
 };
 
 window.loadPointManagerTable = function() {
-    const _0x31 = document.getElementById('pointManagerRows'); _0x31.innerHTML = '';
-    if(pinData.length === 0) { _0x31.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:1rem;">No points logged.</td></tr>`; return; }
-    pinData.forEach((_0x32, _0x33) => {
-        const _0x34 = document.createElement('tr');
-        const _0x35 = _0x32.photo ? `<img src="${_0x32.photo}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewPhotoLightbox('${_0x32.photo}', 'PT${_0x32.id}: ${_0x32.desc}')">` : `<span style="color:#666; font-size:0.75rem;">None</span>`;
-        _0x34.innerHTML = `<td><input type="number" id="mId_${_0x33}" value="${_0x32.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${_0x33}" value="${_0x32.desc}"></td><td>${_0x35}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="updatePoint(${_0x33})">SAVE</button><button class="del-row-btn" onclick="deletePointManager(${_0x33})">DEL</button></td>`;
-        _0x31.appendChild(_0x34);
+    const tbody = document.getElementById('pointManagerRows'); tbody.innerHTML = '';
+    if(pinData.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="color:#9ca3af; padding:1rem;">No points logged.</td></tr>`; return; }
+    pinData.forEach((pt, i) => {
+        const tr = document.createElement('tr');
+        const photoCell = pt.photo ? `<img src="${pt.photo}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewPhotoLightbox('${pt.photo}', 'PT${pt.id}: ${pt.desc}')">` : `<span style="color:#666; font-size:0.75rem;">None</span>`;
+        tr.innerHTML = `<td><input type="number" id="mId_${i}" value="${pt.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${i}" value="${pt.desc}"></td><td>${photoCell}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="updatePoint(${i})">SAVE</button><button class="del-row-btn" onclick="deletePointManager(${i})">DEL</button></td>`;
+        tbody.appendChild(tr);
     });
 };
 
-window.viewPhotoLightbox = function(_0x36, _0x37) { document.getElementById('lightboxImg').src = _0x36; document.getElementById('lightboxCaption').innerText = _0x37; document.getElementById('photoModalOverlay').style.display = 'flex'; };
+window.viewPhotoLightbox = function(src, caption) { document.getElementById('lightboxImg').src = src; document.getElementById('lightboxCaption').innerText = caption; document.getElementById('photoModalOverlay').style.display = 'flex'; };
 
-window.updatePoint = async function(_0x38) {
-    const _0x39 = parseInt(document.getElementById(`mId_${_0x38}`).value); const _0x3a = document.getElementById(`mDesc_${_0x38}`).value.trim().toUpperCase();
-    if(!isNaN(_0x39)) pinData[_0x38].id = _0x39; if(_0x3a) pinData[_0x38].desc = _0x3a;
-    await savePinsToDB(); droppedPins.forEach(_0x3b => map.removeLayer(_0x3b)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); alert(`Point ${pinData[_0x38].id} updated!`);
+window.updatePoint = async function(idx) {
+    const newId = parseInt(document.getElementById(`mId_${idx}`).value); const newDesc = document.getElementById(`mDesc_${idx}`).value.trim().toUpperCase();
+    if(!isNaN(newId)) pinData[idx].id = newId; if(newDesc) pinData[idx].desc = newDesc;
+    await savePinsToDB(); droppedPins.forEach(p => map.removeLayer(p)); droppedPins = []; pinData.forEach(renderPin); rebuildSmartLinework(); alert(`Point ${pinData[idx].id} updated!`);
 };
 
-window.deletePointManager = async function(_0x3c) {
-    if(!confirm(`Delete Point ${pinData[_0x3c].id}?`)) return;
-    map.removeLayer(droppedPins[_0x3c]); pinData.splice(_0x3c, 1); droppedPins.splice(_0x3c, 1);
+window.deletePointManager = async function(idx) {
+    if(!confirm(`Delete Point ${pinData[idx].id}?`)) return;
+    map.removeLayer(droppedPins[idx]); pinData.splice(idx, 1); droppedPins.splice(idx, 1);
     await savePinsToDB(); loadPointManagerTable(); rebuildSmartLinework();
 };
 
-window.switchParcelTab = function(_0x3d) {
-    document.getElementById('parcelTab1').style.display = (_0x3d === 1) ? 'block' : 'none'; document.getElementById('parcelTab2').style.display = (_0x3d === 2) ? 'block' : 'none';
-    document.getElementById('pTab1Btn').style.background = (_0x3d === 1) ? 'var(--accent)' : '#4b5563'; document.getElementById('pTab2Btn').style.background = (_0x3d === 2) ? 'var(--accent)' : '#4b5563';
+window.switchParcelTab = function(tab) {
+    document.getElementById('parcelTab1').style.display = (tab === 1) ? 'block' : 'none'; document.getElementById('parcelTab2').style.display = (tab === 2) ? 'block' : 'none';
+    document.getElementById('pTab1Btn').style.background = (tab === 1) ? 'var(--accent)' : '#4b5563'; document.getElementById('pTab2Btn').style.background = (tab === 2) ? 'var(--accent)' : '#4b5563';
 };
 
 window.runLiveConversion = function() {
-    const _0x3e = parseFloat(document.getElementById('convInput').value); const _0x3f = document.getElementById('convUnit').value;
-    if(isNaN(_0x3e)) { document.getElementById('resFt').innerText = '--'; document.getElementById('resIn').innerText = '--'; document.getElementById('resCm').innerText = '--'; return; }
-    let _0x40 = 0; if(_0x3f === 'ft') _0x40 = _0x3e; else if(_0x3f === 'in') _0x40 = _0x3e / 12.0; else if(_0x3f === 'cm') _0x40 = _0x3e / 30.48;
-    document.getElementById('resFt').innerText = `${_0x40.toFixed(3)}'`; document.getElementById('resIn').innerText = `${(_0x40 * 12).toFixed(2)}"`; document.getElementById('resCm').innerText = `${(_0x40 * 30.48).toFixed(1)}cm`;
+    const val = parseFloat(document.getElementById('convInput').value); const unit = document.getElementById('convUnit').value;
+    if(isNaN(val)) { document.getElementById('resFt').innerText = '--'; document.getElementById('resIn').innerText = '--'; document.getElementById('resCm').innerText = '--'; return; }
+    let ft = 0; if(unit === 'ft') ft = val; else if(unit === 'in') ft = val / 12.0; else if(unit === 'cm') ft = val / 30.48;
+    document.getElementById('resFt').innerText = `${ft.toFixed(3)}'`; document.getElementById('resIn').innerText = `${(ft * 12).toFixed(2)}"`; document.getElementById('resCm').innerText = `${(ft * 30.48).toFixed(1)}cm`;
 };
 
 proj4.defs("EPSG:32133","+proj=lcc +lat_1=34.83333333333334 +lat_2=32.5 +lat_0=31.83333333333333 +lon_0=-81 +x_0=609600.1219202438 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
 proj4.defs("EPSG:2264","+proj=lcc +lat_1=36.16666666666666 +lat_2=34.33333333333334 +lat_0=33.75 +lon_0=-79 +x_0=609601.2192024384 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
 proj4.defs("EPSG:2236","+proj=tmerc +lat_0=24.33333333333333 +lon_0=-81 +k=0.9999411764705882 +x_0=200000.0001016002 +y_0=0 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs");
 
-window.toggleDrawer = function() { const _0x41 = document.getElementById('sideDrawer'); const _0x42 = document.getElementById('drawerOverlay'); if(_0x41.classList.contains('open')) { closeDrawer(); } else { _0x41.classList.add('open'); _0x42.style.display = 'block'; } };
+window.toggleDrawer = function() { const drawer = document.getElementById('sideDrawer'); const overlay = document.getElementById('drawerOverlay'); if(drawer.classList.contains('open')) { closeDrawer(); } else { drawer.classList.add('open'); overlay.style.display = 'block'; } };
 window.closeDrawer = function() { document.getElementById('sideDrawer').classList.remove('open'); document.getElementById('drawerOverlay').style.display = 'none'; };
 
-window.openModal = function(_0x43) { 
+window.openModal = function(modalId) { 
     closeDrawer(); 
-    if(_0x43 === 'dataHubOverlay') { loadPointManagerTable(); } 
-    const _0x44 = document.getElementById(_0x43);
-    if(_0x44) { _0x44.style.display = 'flex'; }
+    if(modalId === 'dataHubOverlay') { loadPointManagerTable(); } 
+    const modal = document.getElementById(modalId);
+    if(modal) { modal.style.display = 'flex'; }
 };
 
-window.closeModal = function(_0x45) { document.getElementById(_0x45).style.display = 'none'; };
+window.closeModal = function(modalId) { document.getElementById(modalId).style.display = 'none'; };
 
 let activeProjectId = "default"; let projectsList = []; let pinData = []; let droppedPins = [];
 let cogoLineLayer = L.polyline([], {color: '#38bdf8', weight: 3, dashArray: '6, 6'}).addTo(map);
@@ -854,140 +863,192 @@ let stationLineLayer = L.polyline([], {color: '#fcd34d', weight: 3, dashArray: '
 let activeStrings = {};
 
 let pointFilters = { MON: true, PAV: true, UTIL: true, OTHER: true };
-window.togglePointFilter = function(_0x46, _0x47) {
-    pointFilters[_0x46] = _0x47;
-    droppedPins.forEach(_0x48 => map.removeLayer(_0x48));
+window.togglePointFilter = function(cat, state) {
+    pointFilters[cat] = state;
+    droppedPins.forEach(p => map.removeLayer(p));
     droppedPins = [];
-    pinData.forEach((_0x49, _0x4a) => renderPin(_0x49, _0x4a));
+    pinData.forEach((pt, i) => renderPin(pt, i));
 };
 
-function getPointCategory(_0x4b) {
-    const _0x4c = _0x4b.split(' ')[0];
-    if (["IPF", "IRF", "CMF", "PK", "MAG", "CP", "BM"].includes(_0x4c)) return 'MON';
-    if (["EP", "BOC", "FL", "TC", "SW"].includes(_0x4c)) return 'PAV';
-    if (["SS", "SSINV", "W", "STM", "STMINV", "AG", "E", "T"].includes(_0x4c)) return 'UTIL';
+function getPointCategory(desc) {
+    const code = desc.split(' ')[0];
+    if (["IPF", "IRF", "CMF", "PK", "MAG", "CP", "BM"].includes(code)) return 'MON';
+    if (["EP", "BOC", "FL", "TC", "SW"].includes(code)) return 'PAV';
+    if (["SS", "SSINV", "W", "STM", "STMINV", "AG", "E", "T"].includes(code)) return 'UTIL';
     return 'OTHER';
 }
 
 async function initDB() { projectsList = (await localforage.getItem('projectsList')) || [{id: "default", name: "Job 1"}]; activeProjectId = (await localforage.getItem('activeProjectId')) || "default"; refreshProjectSelector(); await loadProjectData(); }
-function refreshProjectSelector() { const _0x4d = document.getElementById('projectSelector'); _0x4d.innerHTML = ''; projectsList.forEach(_0x4e => { _0x4d.add(new Option(_0x4e.name, _0x4e.id, false, _0x4e.id === activeProjectId)); }); }
-window.createNewProject = async function() { const _0x4f = prompt("Enter new project name:"); if(!_0x4f) return; const _0x50 = "proj_" + Date.now(); projectsList.push({id:_0x50, name:_0x4f}); await localforage.setItem('projectsList', projectsList); await switchProject(_0x50); }
-window.switchProject = async function(_0x51) { activeProjectId = _0x51; await localforage.setItem('activeProjectId', _0x51); await loadProjectData(); }
+function refreshProjectSelector() { const sel = document.getElementById('projectSelector'); sel.innerHTML = ''; projectsList.forEach(p => { sel.add(new Option(p.name, p.id, false, p.id === activeProjectId)); }); }
+window.createNewProject = async function() { const name = prompt("Enter new project name:"); if(!name) return; const id = "proj_" + Date.now(); projectsList.push({id:id, name:name}); await localforage.setItem('projectsList', projectsList); await switchProject(id); }
+window.switchProject = async function(id) { activeProjectId = id; await localforage.setItem('activeProjectId', id); await loadProjectData(); }
 
 async function loadProjectData() { 
-    droppedPins.forEach(_0x52 => map.removeLayer(_0x52)); droppedPins = []; 
-    Object.values(activeStrings).forEach(_0x53 => { if(_0x53) map.removeLayer(_0x53); }); activeStrings = {};
+    droppedPins.forEach(p => map.removeLayer(p)); droppedPins = []; 
+    Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); }); activeStrings = {};
     cogoLineLayer.setLatLngs([]); stationLineLayer.setLatLngs([]); 
     pinData = (await localforage.getItem(activeProjectId)) || []; 
-    pinData.forEach((_0x54, _0x55) => renderPin(_0x54, _0x55)); rebuildSmartLinework(); clearCogoSelection();
+    pinData.forEach((pt, i) => renderPin(pt, i)); rebuildSmartLinework(); clearCogoSelection();
 }
 
 async function savePinsToDB() { await localforage.setItem(activeProjectId, pinData); }
 initDB();
 
-function renderPin(_0x56, _0x57) {
-    const _0x58 = getPointCategory(_0x56.desc);
-    if (!pointFilters[_0x58]) return;
-    const _0x59 = L.circleMarker([_0x56.lat, _0x56.lng], {
+function renderPin(pt, idx) {
+    const cat = getPointCategory(pt.desc);
+    if (!pointFilters[cat]) return;
+    const marker = L.circleMarker([pt.lat, pt.lng], {
         radius: 7, color: '#ffffff', weight: 2, fillColor: '#3b82f6', fillOpacity: 0.9
     }).addTo(map);
 
-    const _0x5a = `
+    const popupHtml = `
         <div style="font-family:sans-serif; text-align:center; min-width:140px;">
-            <b style="font-size:0.95rem; color:#3b82f6;">PT ${_0x56.id}</b><br>
-            <span style="font-size:0.8rem; font-weight:bold; color:#333;">${_0x56.desc}</span><br>
+            <b style="font-size:0.95rem; color:#3b82f6;">PT ${pt.id}</b><br>
+            <span style="font-size:0.8rem; font-weight:bold; color:#333;">${pt.desc}</span><br>
             <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.6rem;">
-                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${_0x57})">STAKE OUT</button>
-                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${_0x56.lat}, ${_0x56.lng})">CENTER</button>
-                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${_0x57})">DELETE</button>
+                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${idx})">STAKE OUT</button>
+                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${pt.lat}, ${pt.lng})">CENTER</button>
+                <button class="btn" style="background:#f59e0b; font-size:0.7rem; padding:0.3rem;" onclick="selectPointForInverse(${idx})">SELECT FOR INV</button>
+                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${idx})">DELETE</button>
             </div>
         </div>
     `;
-    _0x59.bindPopup(_0x5a);
-    droppedPins.push(_0x59);
+    marker.bindPopup(popupHtml);
+    droppedPins.push(marker);
 }
 
+window.selectPointForInverse = function(idx) {
+    const pt = pinData[idx];
+    if (!selPtA) {
+        selPtA = pt;
+        document.getElementById('cogoPtAText').innerText = `PT ${pt.id}`;
+        alert(`FROM Point Set: PT ${pt.id}. Now select second point.`);
+    } else if (!selPtB && pt.id !== selPtA.id) {
+        selPtB = pt;
+        document.getElementById('cogoPtBText').innerText = `PT ${pt.id}`;
+        runSelectedInverse();
+    } else {
+        selPtA = pt; selPtB = null;
+        document.getElementById('cogoPtAText').innerText = `PT ${pt.id}`;
+        document.getElementById('cogoPtBText').innerText = `--`;
+        alert(`FROM Point Reset: PT ${pt.id}. Select second point.`);
+    }
+    map.closePopup();
+};
+
+window.runSelectedInverse = function() {
+    if (!selPtA || !selPtB) {
+        alert("Please select two distinct points for Inverse calculation.");
+        return;
+    }
+    const cA = getActiveCRSCoord(selPtA.lat, selPtA.lng);
+    const cB = getActiveCRSCoord(selPtB.lat, selPtB.lng);
+    const dn = cB[1] - cA[1];
+    const de = cB[0] - cA[0];
+    const dist = Math.sqrt((dn * dn) + (de * de));
+    let az = Math.atan2(de, dn) * (180 / Math.PI);
+    if (az < 0) az += 360;
+    const d = Math.floor(az);
+    const m = Math.floor((az - d) * 60);
+    const s = Math.round(((az - d) * 60 - m) * 60);
+    const bearingStr = `N ${d}°${String(m).padStart(2,'0')}'${String(s).padStart(2,'0')}" E`;
+    document.getElementById('cogoBearing').innerText = bearingStr;
+    document.getElementById('cogoDist').innerText = `${dist.toFixed(3)} FT`;
+    cogoLineLayer.setLatLngs([[selPtA.lat, selPtA.lng], [selPtB.lat, selPtB.lng]]);
+    openModal('cogoSuiteOverlay');
+    switchCogoTab('inverse');
+};
+
+window.clearCogoSelection = function() {
+    selPtA = null; selPtB = null;
+    document.getElementById('cogoPtAText').innerText = '--';
+    document.getElementById('cogoPtBText').innerText = '--';
+    document.getElementById('cogoBearing').innerText = '--';
+    document.getElementById('cogoDist').innerText = '-- FT';
+    cogoLineLayer.setLatLngs([]);
+};
+
 function rebuildSmartLinework() {
-    Object.values(activeStrings).forEach(_0x5b => { if(_0x5b) map.removeLayer(_0x5b); }); activeStrings = {};
-    pinData.forEach(_0x5c => {
-        const _0x5d = _0x5c.desc.split(' '); const _0x5e = _0x5d[0]; const _0x5f = _0x5d.includes('B'); const _0x60 = _0x5d.includes('E');
-        const _0x61 = ["EP", "BOC", "FL", "TC", "SW", "FNC", "CL"];
-        if(_0x61.includes(_0x5e)) {
-            let _0x62 = _0x5e; if(_0x5f || !activeStrings[_0x62]) { if(_0x5f) _0x62 = _0x5e + "_" + _0x5c.id; activeStrings[_0x62] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); }
-            let _0x63 = activeStrings[_0x62]; if(!_0x63) { activeStrings[_0x62] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); _0x63 = activeStrings[_0x62]; }
-            _0x63.addLatLng([_0x5c.lat, _0x5c.lng]); if(_0x60) { activeStrings[_0x5e] = null; }
+    Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); }); activeStrings = {};
+    pinData.forEach(pt => {
+        const parts = pt.desc.split(' '); const base = parts[0]; const isBegin = parts.includes('B'); const isEnd = parts.includes('E');
+        const linearCodes = ["EP", "BOC", "FL", "TC", "SW", "FNC", "CL"];
+        if(linearCodes.includes(base)) {
+            let key = base; if(isBegin || !activeStrings[key]) { if(isBegin) key = base + "_" + pt.id; activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); }
+            let poly = activeStrings[key]; if(!poly) { activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); poly = activeStrings[key]; }
+            poly.addLatLng([pt.lat, pt.lng]); if(isEnd) { activeStrings[base] = null; }
         }
     });
 }
 
-window.handleCSVImport = function(_0x64) {
-    const _0x65 = _0x64.target.files[0]; if (!_0x65) return; const _0x66 = new FileReader();
-    _0x66.onload = async function(_0x67) {
-        const _0x68 = _0x67.target.result; const _0x69 = _0x68.split('\n'); let _0x6b = 0;
-        for(let _0x6c of _0x69) {
-            const _0x6d = _0x6c.split(',');
-            if(_0x6d.length >= 4) {
-                const _0x6e = parseInt(_0x6d[0].trim()); const _0x6f = parseFloat(_0x6d[1].trim()); const _0x70 = parseFloat(_0x6d[2].trim()); const _0x71 = parseFloat(_0x6d[3].trim()); const _0x72 = _0x6d[4] ? _0x6d[4].trim() : "STAKEOUT";
-                if(isNaN(_0x6e) || isNaN(_0x6f) || isNaN(_0x70)) continue; 
-                let _0x73, _0x74;
+window.handleCSVImport = function(e) {
+    const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+    reader.onload = async function(evt) {
+        const text = evt.target.result; const lines = text.split('\n'); let count = 0;
+        for(let line of lines) {
+            const cols = line.split(',');
+            if(cols.length >= 4) {
+                const pid = parseInt(cols[0].trim()); const n = parseFloat(cols[1].trim()); const east = parseFloat(cols[2].trim()); const el = parseFloat(cols[3].trim()); const desc = cols[4] ? cols[4].trim() : "STAKEOUT";
+                if(isNaN(pid) || isNaN(n) || isNaN(east)) continue; 
+                let lat, lng;
                 let zone = document.getElementById('spcZoneSelect').value;
-                if (zone === "AUTO") zone = getAutoCRS(_0x6f, _0x70);
-                if(zone !== "EPSG:4326") { const _0x75 = proj4(zone, 'EPSG:4326', [_0x70, _0x6f]); _0x74 = _0x75[0]; _0x73 = _0x75[1]; } else { _0x73 = _0x6f; _0x74 = _0x70; }
-                const _0x76 = pinData.findIndex(_0x77 => _0x77.id === _0x6e);
-                const _0x78 = { id: _0x6e, lat: _0x73, lng: _0x74, desc: _0x72, photo: null, elev: _0x71 };
-                if(_0x76 > -1) { pinData[_0x76] = _0x78; } else { pinData.push(_0x78); }
-                _0x6b++;
+                if (zone === "AUTO") zone = getAutoCRS(n, east);
+                if(zone !== "EPSG:4326") { const ll = proj4(zone, 'EPSG:4326', [east, n]); lng = ll[0]; lat = ll[1]; } else { lat = n; lng = east; }
+                const idx = pinData.findIndex(p => p.id === pid);
+                const newPt = { id: pid, lat: lat, lng: lng, desc: desc, photo: null, elev: el };
+                if(idx > -1) { pinData[idx] = newPt; } else { pinData.push(newPt); }
+                count++;
             }
         }
-        if(_0x6b > 0) { await savePinsToDB(); droppedPins.forEach(_0x79 => map.removeLayer(_0x79)); droppedPins = []; pinData.forEach((_0x7a, _0x7b) => renderPin(_0x7a, _0x7b)); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${_0x6b} stakeout points!`); } else { alert("No valid PNEZD points found in CSV."); }
-        _0x64.target.value = ''; 
-    }; _0x66.readAsText(_0x65);
+        if(count > 0) { await savePinsToDB(); droppedPins.forEach(p => map.removeLayer(p)); droppedPins = []; pinData.forEach((pt, i) => renderPin(pt, i)); rebuildSmartLinework(); closeDrawer(); alert(`Successfully imported ${count} points!`); } else { alert("No valid points found in CSV."); }
+        e.target.value = ''; 
+    }; reader.readAsText(file);
 };
 
 let rawCadGeoJSON = null; let cadLayers = {}; let loadedDTM = null;
-window.handleCADImport = function(_0x7c) {
-    const _0x7d = _0x7c.target.files[0]; if (!_0x7d) return; const _0x7e = new FileReader();
-    _0x7e.onload = function(_0x7f) {
+window.handleCADImport = function(e) {
+    const file = e.target.files[0]; if (!file) return; const reader = new FileReader();
+    reader.onload = function(evt) {
         try {
-            rawCadGeoJSON = JSON.parse(_0x7f.target.result); cadLayers = {}; loadedDTM = [];
+            rawCadGeoJSON = JSON.parse(evt.target.result); cadLayers = {}; loadedDTM = [];
             if(rawCadGeoJSON.features) { 
-                rawCadGeoJSON.features.forEach(_0x80 => { 
-                    const _0x81 = (_0x80.properties && _0x80.properties.layer) ? _0x80.properties.layer : "Default Layer"; cadLayers[_0x81] = true; 
-                    if (_0x80.geometry.type === 'Polygon' && _0x80.geometry.coordinates[0][0].length === 3) { loadedDTM.push(_0x80); document.getElementById('topSurfacesText').style.display = 'block'; }
+                rawCadGeoJSON.features.forEach(f => { 
+                    const lName = (f.properties && f.properties.layer) ? f.properties.layer : "Default Layer"; cadLayers[lName] = true; 
+                    if (f.geometry.type === 'Polygon' && f.geometry.coordinates[0][0].length === 3) { loadedDTM.push(f); document.getElementById('topSurfacesText').style.display = 'block'; }
                 }); 
             }
             buildCadLayerManager(); renderCadVectors(); closeDrawer(); openModal('cadManagerOverlay');
-        } catch(_0x82) { alert("Error parsing GeoJSON CAD file."); }
-    }; _0x7e.readAsText(_0x7d);
+        } catch(err) { alert("Error parsing GeoJSON CAD file."); }
+    }; reader.readAsText(file);
 }
 
 const cadLayerGroup = L.layerGroup().addTo(map);
 function buildCadLayerManager() {
-    const _0x83 = document.getElementById('cadLayerList'); _0x83.innerHTML = '';
-    if(Object.keys(cadLayers).length === 0) { _0x83.innerHTML = '<p style="color: #9ca3af; font-size: 0.8rem; text-align: center;">No CAD data loaded.</p>'; return; }
-    Object.keys(cadLayers).forEach(_0x84 => {
-        const _0x85 = document.createElement('div'); _0x85.className = 'telemetry-row';
-        _0x85.innerHTML = `<span style="font-size:0.85rem; font-weight:600; color:white;">${_0x84}</span><input type="checkbox" style="width:20px; height:20px; accent-color:var(--accent);" ${cadLayers[_0x84] ? 'checked' : ''} onchange="toggleSingleCadLayer('${_0x84}', this.checked)">`;
-        _0x83.appendChild(_0x85);
+    const list = document.getElementById('cadLayerList'); list.innerHTML = '';
+    if(Object.keys(cadLayers).length === 0) { list.innerHTML = '<p style="color: #9ca3af; font-size: 0.8rem; text-align: center;">No CAD data loaded.</p>'; return; }
+    Object.keys(cadLayers).forEach(lName => {
+        const row = document.createElement('div'); row.className = 'telemetry-row';
+        row.innerHTML = `<span style="font-size:0.85rem; font-weight:600; color:white;">${lName}</span><input type="checkbox" style="width:20px; height:20px; accent-color:var(--accent);" ${cadLayers[lName] ? 'checked' : ''} onchange="toggleSingleCadLayer('${lName}', this.checked)">`;
+        list.appendChild(row);
     });
 }
-window.toggleSingleCadLayer = function(_0x86, _0x87) { cadLayers[_0x86] = _0x87; renderCadVectors(); };
-window.setAllCadLayers = function(_0x88) { Object.keys(cadLayers).forEach(_0x89 => cadLayers[_0x89] = _0x88); buildCadLayerManager(); renderCadVectors(); };
+window.toggleSingleCadLayer = function(lName, state) { cadLayers[lName] = state; renderCadVectors(); };
+window.setAllCadLayers = function(state) { Object.keys(cadLayers).forEach(lName => cadLayers[lName] = state); buildCadLayerManager(); renderCadVectors(); };
 function renderCadVectors() {
     cadLayerGroup.clearLayers(); if(!rawCadGeoJSON || !rawCadGeoJSON.features) return;
-    const _0x8a = rawCadGeoJSON.features.filter(_0x8b => { const _0x8c = (_0x8b.properties && _0x8b.properties.layer) ? _0x8b.properties.layer : "Default Layer"; return cadLayers[_0x8c]; });
-    L.geoJSON({ type: "FeatureCollection", features: _0x8a }, {
+    const feats = rawCadGeoJSON.features.filter(f => { const lName = (f.properties && f.properties.layer) ? f.properties.layer : "Default Layer"; return cadLayers[lName]; });
+    L.geoJSON({ type: "FeatureCollection", features: feats }, {
         style: { color: "#ec4899", weight: 2, opacity: 0.8 },
-        onEachFeature: function(_0x8d, _0x8e) { 
-            const _0x8f = (_0x8d.properties && _0x8d.properties.layer) ? _0x8d.properties.layer : "CAD Feature"; 
-            if(_0x8d.geometry.type === 'LineString') { _0x8e.on('click', () => { setCadAlignment(_0x8d.geometry.coordinates, _0x8f); }); } else { _0x8e.bindPopup(`<b>${_0x8f}</b>`); }
+        onEachFeature: function(feature, layer) { 
+            const lName = (feature.properties && feature.properties.layer) ? feature.properties.layer : "CAD Feature"; 
+            if(feature.geometry.type === 'LineString') { layer.on('click', () => { setCadAlignment(feature.geometry.coordinates, lName); }); } else { layer.bindPopup(`<b>${lName}</b>`); }
         }
     }).addTo(cadLayerGroup);
 }
 
-window.setCadAlignment = function(_0x90, _0x91) {
-    if(!confirm(`Set ${_0x91} as active Continuous Alignment?`)) return; activeAlignment = _0x90.map(_0x92 => [_0x92[1], _0x92[0]]); stationLineLayer.setLatLngs(activeAlignment);
-    document.getElementById('staPtAText').innerText = `CAD: ${_0x91}`; document.getElementById('staPtBText').innerText = `Polyline Track`; openModal('cogoSuiteOverlay'); switchCogoTab('station');
+window.setCadAlignment = function(coords, name) {
+    if(!confirm(`Set ${name} as active Continuous Alignment?`)) return; activeAlignment = coords.map(c => [c[1], c[0]]); stationLineLayer.setLatLngs(activeAlignment);
+    document.getElementById('staPtAText').innerText = `CAD: ${name}`; document.getElementById('staPtBText').innerText = `Polyline Track`; openModal('cogoSuiteOverlay'); switchCogoTab('station');
 };
 
 const cadCodes = [
@@ -1004,19 +1065,19 @@ const cadCodes = [
 
 const searchInput = document.getElementById('searchInput'); const dropdownList = document.getElementById('dropdownList'); const pointNote = document.getElementById('pointNote'); const previewText = document.getElementById('finalDescPreview');
 let selectedBaseCode = "RECON"; let activeModifiers = [];
-function renderDropdown(_0x93 = "") {
-    dropdownList.innerHTML = ''; const _0x94 = _0x93.toLowerCase().trim();
-    const _0x95 = cadCodes.filter(_0x96 => _0x96.code.toLowerCase().includes(_0x94) || _0x96.desc.toLowerCase().includes(_0x94));
-    if(_0x95.length === 0) { dropdownList.style.display = 'none'; return; }
-    _0x95.forEach(_0x97 => {
-        const _0x98 = document.createElement('div'); _0x98.className = 'dropdown-item'; _0x98.innerHTML = `<span class="dropdown-code">${_0x97.code}</span><span class="dropdown-desc">${_0x97.desc}</span>`;
-        _0x98.onclick = () => { selectedBaseCode = _0x97.code; searchInput.value = _0x97.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(_0x98);
+function renderDropdown(filter = "") {
+    dropdownList.innerHTML = ''; const q = filter.toLowerCase().trim();
+    const matches = cadCodes.filter(c => c.code.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
+    if(matches.length === 0) { dropdownList.style.display = 'none'; return; }
+    matches.forEach(item => {
+        const div = document.createElement('div'); div.className = 'dropdown-item'; div.innerHTML = `<span class="dropdown-code">${item.code}</span><span class="dropdown-desc">${item.desc}</span>`;
+        div.onclick = () => { selectedBaseCode = item.code; searchInput.value = item.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(div);
     }); dropdownList.style.display = 'block';
 }
 
-searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); searchInput.addEventListener('input', (_0x99) => { renderDropdown(_0x99.target.value); selectedBaseCode = _0x99.target.value.toUpperCase() || "RECON"; updatePreview(); }); document.addEventListener('click', (_0x9a) => { if(!document.getElementById('dropdownContainer').contains(_0x9a.target)) dropdownList.style.display = 'none'; }); window.toggleMod = function(_0x9b, _0x9c) { _0x9b.classList.toggle('active'); if(activeModifiers.includes(_0x9c)) activeModifiers = activeModifiers.filter(_0x9d => _0x9d !== _0x9c); else activeModifiers.push(_0x9c); updatePreview(); }; pointNote.addEventListener('input', updatePreview);
-function updatePreview() { let _0x9e = selectedBaseCode; if(activeModifiers.length) _0x9e += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) _0x9e += ` ${pointNote.value.trim().toUpperCase()}`; previewText.innerText = `PREVIEW: ${_0x9e || "RECON"}`; }
-function getFinalDescription() { let _0x9f = selectedBaseCode; if(activeModifiers.length) _0x9f += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) _0x9f += ` ${pointNote.value.trim().toUpperCase()}`; return _0x9f || "RECON"; }
+searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); searchInput.addEventListener('input', (e) => { renderDropdown(e.target.value); selectedBaseCode = e.target.value.toUpperCase() || "RECON"; updatePreview(); }); document.addEventListener('click', (e) => { if(!document.getElementById('dropdownContainer').contains(e.target)) dropdownList.style.display = 'none'; }); window.toggleMod = function(btn, mod) { btn.classList.toggle('active'); if(activeModifiers.includes(mod)) activeModifiers = activeModifiers.filter(m => m !== mod); else activeModifiers.push(mod); updatePreview(); }; pointNote.addEventListener('input', updatePreview);
+function updatePreview() { let str = selectedBaseCode; if(activeModifiers.length) str += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) str += ` ${pointNote.value.trim().toUpperCase()}`; previewText.innerText = `PREVIEW: ${str || "RECON"}`; }
+function getFinalDescription() { let str = selectedBaseCode; if(activeModifiers.length) str += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) str += ` ${pointNote.value.trim().toUpperCase()}`; return str || "RECON"; }
 
 document.getElementById('centerBtn').addEventListener('click', () => { if (userMarker) map.setView(userMarker.getLatLng(), 19); });
 
@@ -1024,134 +1085,150 @@ document.getElementById('gpsPinBtn').addEventListener('click', () => {
     if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0);
     if (!lastKnownLat) { alert("Awaiting GPS lock..."); return; } 
     if (lastKnownAccuracy > window.qcTolerance) { if(!confirm(`WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; }
-    const _0xa0 = document.getElementById('averagingOverlay'); _0xa0.style.display = 'flex'; let _0xa1 = []; let _0xa2 = 5; document.getElementById('avgTimer').innerText = _0xa2; if (navigator.vibrate) navigator.vibrate(50); 
-    const _0xa3 = setInterval(() => { 
-        _0xa1.push({ lat: lastKnownLat, lon: lastKnownLon }); _0xa2--; document.getElementById('avgTimer').innerText = _0xa2; 
-        if (_0xa2 <= 0) { clearInterval(_0xa3); _0xa0.style.display = 'none'; const _0xa4 = _0xa1.reduce((_0xa5,_0xa6)=>_0xa5+_0xa6.lat,0)/_0xa1.length; const _0xa7 = _0xa1.reduce((_0xa8,_0xa9)=>_0xa8+_0xa9.lon,0)/_0xa1.length; savePin(_0xa4, _0xa7); } 
+    const avgOverlay = document.getElementById('averagingOverlay'); avgOverlay.style.display = 'flex'; let epochs = []; let timer = 5; document.getElementById('avgTimer').innerText = timer; if (navigator.vibrate) navigator.vibrate(50); 
+    const timerInterval = setInterval(() => { 
+        epochs.push({ lat: lastKnownLat, lon: lastKnownLon }); timer--; document.getElementById('avgTimer').innerText = timer; 
+        if (timer <= 0) { clearInterval(timerInterval); avgOverlay.style.display = 'none'; const lat = epochs.reduce((s,p)=>s+p.lat,0)/epochs.length; const lon = epochs.reduce((s,p)=>s+p.lon,0)/epochs.length; savePin(lat, lon); } 
     }, 1000); 
 });
 
-document.getElementById('mapPinBtn').addEventListener('click', () => { if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); const _0xaa = map.getCenter(); savePin(_0xaa.lat, _0xaa.lng); });
+document.getElementById('mapPinBtn').addEventListener('click', () => { if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0); const center = map.getCenter(); savePin(center.lat, center.lng); });
 
-async function savePin(_0xab, _0xac) {
-    const _0xad = parseInt(document.getElementById('startIdInput').value) || 1; const _0xae = pinData.length > 0 ? Math.max(...pinData.map(_0xaf=>_0xaf.id)) + 1 : _0xad;
-    const _0xb0 = { id: _0xae, lat: _0xab, lng: _0xac, desc: getFinalDescription(), photo: currentCapturedPhoto }; 
-    pinData.push(_0xb0); currentCapturedPhoto = null; document.getElementById('photoStatusIndicator').style.display = 'none';
-    await savePinsToDB(); renderPin(_0xb0, pinData.length - 1); rebuildSmartLinework();
-    document.getElementById('pointNote').value = ''; searchInput.value = ''; activeModifiers = []; document.querySelectorAll('.mod-btn').forEach(_0xb1 => _0xb1.classList.remove('active')); updatePreview(); 
+async function savePin(lat, lng) {
+    const startId = parseInt(document.getElementById('startIdInput').value) || 1; const nextId = pinData.length > 0 ? Math.max(...pinData.map(p=>p.id)) + 1 : startId;
+    const pt = { id: nextId, lat: lat, lng: lng, desc: getFinalDescription(), photo: currentCapturedPhoto }; 
+    pinData.push(pt); currentCapturedPhoto = null; document.getElementById('photoStatusIndicator').style.display = 'none';
+    await savePinsToDB(); renderPin(pt, pinData.length - 1); rebuildSmartLinework();
+    document.getElementById('pointNote').value = ''; searchInput.value = ''; activeModifiers = []; document.querySelectorAll('.mod-btn').forEach(b => b.classList.remove('active')); updatePreview(); 
 }
 
 let activeHighlight = null;
-map.on('click', async function(_0xb2) {
-    if(_0xb2.originalEvent.target.closest('.leaflet-popup') || _0xb2.originalEvent.target.closest('.side-tools') || _0xb2.originalEvent.target.closest('.top-bar') || _0xb2.originalEvent.target.closest('#bullseyePanel')) return;
-    const _0xb3 = _0xb2.latlng.lat; const _0xb4 = _0xb2.latlng.lng;
-    if(activeHighlight) map.removeLayer(activeHighlight); const _0xb5 = 0.0002; activeHighlight = L.polygon([[_0xb3-_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4-_0xb5], [_0xb3+_0xb5, _0xb4+_0xb5], [_0xb3-_0xb5, _0xb4-_0xb5]], {color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.4}).addTo(map);
+map.on('click', async function(e) {
+    if(e.originalEvent.target.closest('.leaflet-popup') || e.originalEvent.target.closest('.side-tools') || e.originalEvent.target.closest('.top-bar') || e.originalEvent.target.closest('#bullseyePanel')) return;
+    const lat = e.latlng.lat; const lng = e.latlng.lng;
+    
+    // Check if we are selecting points for COGO Inverse
+    const cogoModal = document.getElementById('cogoSuiteOverlay');
+    if (cogoModal.style.display === 'flex') {
+        const closestPt = pinData.reduce((prev, curr) => {
+            const dPrev = Math.hypot(prev.lat - lat, prev.lng - lng);
+            const dCurr = Math.hypot(curr.lat - lat, curr.lng - lng);
+            return dCurr < dPrev ? curr : prev;
+        }, pinData[0]);
+        if (closestPt && Math.hypot(closestPt.lat - lat, closestPt.lng - lng) < 0.001) {
+            selectPointForInverse(pinData.indexOf(closestPt));
+            return;
+        }
+    }
+
+    if(activeHighlight) map.removeLayer(activeHighlight); 
+    activeHighlight = L.circleMarker([lat, lng], { radius: 12, color: '#38bdf8', fillColor: '#3b82f6', fillOpacity: 0.6, weight: 2 }).addTo(map);
     document.getElementById('parcelAddress').innerText = "Querying County GIS..."; document.getElementById('parcelSheet').classList.add('open');
     try {
-        const _0xb6 = Math.abs(Math.round(_0xb3 * 1000000)); const _0xb7 = Math.abs(Math.round(_0xb4 * 1000000)); const _0xb8 = `312${(_0xb6 % 10000).toString().padStart(4, '0')}${(_0xb7 % 1000).toString().padStart(3, '0')}`;
-        const _0xb9 = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${_0xb3}&lon=${_0xb4}&zoom=18&addressdetails=1`;
-        const _0xba = await fetch(_0xb9); const _0xbb = await _0xba.json();
-        if(_0xbb && _0xbb.display_name) { document.getElementById('parcelAddress').innerText = _0xbb.display_name; document.getElementById('parcelOwner').innerText = `Owner: Verified Local Title (GIS Ref)`; document.getElementById('parcelAPN').innerText = `APN / Map No: ${_0xb8}`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: ${(Math.abs(_0xb3) % 2 + 0.35).toFixed(2)} AC`; } else { throw new Error("Address lookup failed"); }
-        document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; 
+        const m1 = Math.abs(Math.round(lat * 1000000)); const m2 = Math.abs(Math.round(lng * 1000000)); const apn = `312${(m1 % 10000).toString().padStart(4, '0')}${(m2 % 1000).toString().padStart(3, '0')}`;
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+        const res = await fetch(url); const data = await res.json();
+        if(data && data.display_name) { document.getElementById('parcelAddress').innerText = data.display_name; document.getElementById('parcelOwner').innerText = `Owner: Verified Local Title (GIS Ref)`; document.getElementById('parcelAPN').innerText = `APN / Map No: ${apn}`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: ${(Math.abs(lat) % 2 + 0.35).toFixed(2)} AC`; } else { throw new Error("Address lookup failed"); }
+        document.getElementById('parcelCoords').innerText = `Lat/Lon: ${lat.toFixed(6)}, ${lng.toFixed(6)}`; 
         let zone = document.getElementById('spcZoneSelect').value;
-        if (zone === "AUTO") zone = getAutoCRS(_0xb3, _0xb4);
-        if(zone !== "EPSG:4326") { const _0xbd = proj4('EPSG:4326', zone, [_0xb4, _0xb3]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${_0xbd[1].toFixed(2)}', ${_0xbd[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
-        document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${_0xb3}/${_0xb4}`;
-    } catch(_0xbe) {
-        document.getElementById('parcelAddress').innerText = "County Parcel Reference"; document.getElementById('parcelAPN').innerText = `APN / Map No: 3120001001`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: 0.75 AC`; document.getElementById('parcelCoords').innerText = `Lat/Lon: ${_0xb3.toFixed(6)}, ${_0xb4.toFixed(6)}`; document.getElementById('parcelSPC').innerText = `SPC: Computed via Proj4js`; document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${_0xb3}/${_0xb4}`;
+        if (zone === "AUTO") zone = getAutoCRS(lat, lng);
+        if(zone !== "EPSG:4326") { const p = proj4('EPSG:4326', zone, [lng, lat]); document.getElementById('parcelSPC').innerText = `SPC (N, E): ${p[1].toFixed(2)}', ${p[0].toFixed(2)}'`; } else { document.getElementById('parcelSPC').innerText = `SPC: N/A (WGS84 Active)`; }
+        document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${lat}/${lng}`;
+    } catch(err) {
+        document.getElementById('parcelAddress').innerText = "County Parcel Reference"; document.getElementById('parcelAPN').innerText = `APN / Map No: 3120001001`; document.getElementById('parcelAcreage').innerText = `Estimated Lot Size: 0.75 AC`; document.getElementById('parcelCoords').innerText = `Lat/Lon: ${lat.toFixed(6)}, ${lng.toFixed(6)}`; document.getElementById('parcelSPC').innerText = `SPC: Computed via Proj4js`; document.getElementById('parcelLink').href = `https://app.regrid.com/us#map=18/${lat}/${lng}`;
     }
 });
 window.closeParcelSheet = function() { document.getElementById('parcelSheet').classList.remove('open'); if(activeHighlight) map.removeLayer(activeHighlight); };
 
 window.solveCurve = function() {
-    const _0xbf = parseFloat(document.getElementById('curveRad').value); const _0xc0 = parseFloat(document.getElementById('curveDelta').value); if(isNaN(_0xbf) || isNaN(_0xc0)) return;
-    const _0xc1 = _0xc0 * (Math.PI / 180); const _0xc2 = _0xbf * _0xc1; const _0xc3 = _0xbf * Math.tan(_0xc1 / 2); const _0xc4 = 2 * _0xbf * Math.sin(_0xc1 / 2);
-    document.getElementById('curveL').innerText = `${_0xc2.toFixed(2)} FT`; document.getElementById('curveT').innerText = `${_0xc3.toFixed(2)} FT`; document.getElementById('curveC').innerText = `${_0xc4.toFixed(2)} FT`;
+    const rad = parseFloat(document.getElementById('curveRad').value); const delta = parseFloat(document.getElementById('curveDelta').value); if(isNaN(rad) || isNaN(delta)) return;
+    const deltaRad = delta * (Math.PI / 180); const L = rad * deltaRad; const T = rad * Math.tan(deltaRad / 2); const C = 2 * rad * Math.sin(deltaRad / 2);
+    document.getElementById('curveL').innerText = `${L.toFixed(2)} FT`; document.getElementById('curveT').innerText = `${T.toFixed(2)} FT`; document.getElementById('curveC').innerText = `${C.toFixed(2)} FT`;
 };
 
-function downloadFile(_0xc5, _0xc6, _0xc7 = 'text/plain') {
-    const _0xc8 = new Blob([_0xc6], { type: _0xc7 });
-    const _0xc9 = URL.createObjectURL(_0xc8);
-    const _0xca = document.createElement('a');
-    _0xca.href = _0xc9;
-    _0xca.download = _0xc5;
-    document.body.appendChild(_0xca);
-    _0xca.click();
-    document.body.removeChild(_0xca);
-    URL.revokeObjectURL(_0xc9);
+function downloadFile(filename, content, mime = 'text/plain') {
+    const blob = new Blob([content], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 window.exportCSV = function() {
     if(pinData.length === 0) { alert("No points to export."); return; }
     let zone = document.getElementById('spcZoneSelect').value;
-    let _0xcc = "Point,Northing,Easting,Elevation,Description\n";
-    pinData.forEach(_0xcd => { 
+    let csv = "Point,Northing,Easting,Elevation,Description\n";
+    pinData.forEach(pt => { 
         let activeZone = zone;
-        if (activeZone === "AUTO") activeZone = getAutoCRS(_0xcd.lat, _0xcd.lng);
-        let _0xce = proj4('EPSG:4326', activeZone, [_0xcd.lng, _0xcd.lat]); 
-        _0xcc += `${_0xcd.id},${_0xce[1].toFixed(4)},${_0xce[0].toFixed(4)},0.00,${_0xcd.desc}\n`; 
+        if (activeZone === "AUTO") activeZone = getAutoCRS(pt.lat, pt.lng);
+        let p = proj4('EPSG:4326', activeZone, [pt.lng, pt.lat]); 
+        csv += `${pt.id},${p[1].toFixed(4)},${p[0].toFixed(4)},0.00,${pt.desc}\n`; 
     });
-    downloadFile(`Project_${activeProjectId}_PNEZD.csv`, _0xcc, 'text/csv');
+    downloadFile(`Project_${activeProjectId}_PNEZD.csv`, csv, 'text/csv');
 };
 
 window.exportDXF = function() {
     if(pinData.length === 0) { alert("No points to export."); return; }
     let zone = document.getElementById('spcZoneSelect').value;
-    let _0xd0 = "0\nSECTION\n2\nENTITIES\n";
-    pinData.forEach(_0xd1 => { 
+    let dxf = "0\nSECTION\n2\nENTITIES\n";
+    pinData.forEach(pt => { 
         let activeZone = zone;
-        if (activeZone === "AUTO") activeZone = getAutoCRS(_0xd1.lat, _0xd1.lng);
-        let _0xd2 = proj4('EPSG:4326', activeZone, [_0xd1.lng, _0xd1.lat]); 
-        _0xd0 += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${_0xd2[0].toFixed(4)}\n20\n${_0xd2[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(_0xd2[0]+2).toFixed(4)}\n20\n${(_0xd2[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${_0xd1.id}-${_0xd1.desc}\n`; 
+        if (activeZone === "AUTO") activeZone = getAutoCRS(pt.lat, pt.lng);
+        let p = proj4('EPSG:4326', activeZone, [pt.lng, pt.lat]); 
+        dxf += `0\nPOINT\n8\nV-NODE-CTRL\n10\n${p[0].toFixed(4)}\n20\n${p[1].toFixed(4)}\n30\n0.0\n0\nTEXT\n8\nV-NODE-TEXT\n10\n${(p[0]+2).toFixed(4)}\n20\n${(p[1]+2).toFixed(4)}\n30\n0.0\n40\n2.0\n1\nPT${pt.id}-${pt.desc}\n`; 
     });
-    _0xd0 += "0\nENDSEC\n0\nEOF\n";
-    downloadFile(`Project_${activeProjectId}.dxf`, _0xd0, 'application/dxf');
+    dxf += "0\nENDSEC\n0\nEOF\n";
+    downloadFile(`Project_${activeProjectId}.dxf`, dxf, 'application/dxf');
 };
 
-function createRow(_0xd3) { const _0xd4 = document.createElement('tr'); _0xd4.innerHTML = _0xd3; const _0xd5 = _0xd4.querySelector('.del-row-btn'); if (_0xd5) { _0xd5.addEventListener('click', function() { _0xd4.remove(); }); } return _0xd4; }
-window.switchBookTab = function(_0xd6) { ['level','traverse','builder','notes'].forEach(_0xd7 => { document.getElementById(_0xd7+'BookSection').style.display = (_0xd7 === _0xd6) ? 'block' : 'none'; document.getElementById('tabBtn-'+_0xd7).style.background = (_0xd7 === _0xd6) ? 'var(--accent)' : '#4b5563'; }); };
-window.addLevelRow = function() { const _0xd8 = '<td><input value="TP"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="100.00"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('levelRows').appendChild(createRow(_0xd8)); };
-window.addTraverseRow = function() { const _0xd9 = '<td><input placeholder="From"></td><td><input placeholder="To"></td><td><input placeholder="Azimuth"></td><td><input placeholder="Dist"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('traverseRows').appendChild(createRow(_0xd9)); };
-window.addBuilderRow = function() { const _0xda = '<td><input placeholder="PT"></td><td><input placeholder="Rod"></td><td><input placeholder="Grade"></td><td><input placeholder="C/F"></td><td><input placeholder="Desc"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('builderRows').appendChild(createRow(_0xda)); };
+function createRow(html) { const tr = document.createElement('tr'); tr.innerHTML = html; const btn = tr.querySelector('.del-row-btn'); if (btn) { btn.addEventListener('click', function() { tr.remove(); }); } return tr; }
+window.switchBookTab = function(tab) { ['level','traverse','builder','notes'].forEach(t => { document.getElementById(t+'BookSection').style.display = (t === tab) ? 'block' : 'none'; document.getElementById('tabBtn-'+t).style.background = (t === tab) ? 'var(--accent)' : '#4b5563'; }); };
+window.addLevelRow = function() { const html = '<td><input value="TP"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="0.00"></td><td><input value="100.00"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('levelRows').appendChild(createRow(html)); };
+window.addTraverseRow = function() { const html = '<td><input placeholder="From"></td><td><input placeholder="To"></td><td><input placeholder="Azimuth"></td><td><input placeholder="Dist"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('traverseRows').appendChild(createRow(html)); };
+window.addBuilderRow = function() { const html = '<td><input placeholder="PT"></td><td><input placeholder="Rod"></td><td><input placeholder="Grade"></td><td><input placeholder="C/F"></td><td><input placeholder="Desc"></td><td><button class="del-row-btn">X</button></td>'; document.getElementById('builderRows').appendChild(createRow(html)); };
 
 window.adjustTraverse = function() {
-    const _0xdb = document.querySelectorAll('#traverseRows tr'); if (_0xdb.length < 3) { alert("Need at least 3 legs to compute traverse closure."); return; }
-    let _0xdc = 0, _0xdd = 0, _0xde = 0; let _0xdf = [];
-    _0xdb.forEach(_0xe0 => {
-        const _0xe1 = Array.from(_0xe0.querySelectorAll('input')).map(_0xe2 => parseFloat(_0xe2.value) || 0);
-        const _0xe3 = _0xe1[2] * (Math.PI / 180); const _0xe4 = _0xe1[3]; const _0xe5 = _0xe4 * Math.cos(_0xe3); const _0xe6 = _0xe4 * Math.sin(_0xe3);
-        _0xdc += _0xe5; _0xdd += _0xe6; _0xde += _0xe4; _0xdf.push({ from: _0xe1[0], to: _0xe1[1], az: _0xe1[2], dist: _0xe4, lat: _0xe5, dep: _0xe6 });
+    const rows = document.querySelectorAll('#traverseRows tr'); if (rows.length < 3) { alert("Need at least 3 legs to compute traverse closure."); return; }
+    let sumLat = 0, sumDep = 0, sumDist = 0; let legs = [];
+    rows.forEach(r => {
+        const vals = Array.from(r.querySelectorAll('input')).map(i => parseFloat(i.value) || 0);
+        const az = vals[2] * (Math.PI / 180); const dist = vals[3]; const lat = dist * Math.cos(az); const dep = dist * Math.sin(az);
+        sumLat += lat; sumDep += dep; sumDist += dist; legs.push({ from: vals[0], to: vals[1], az: vals[2], dist: dist, lat: lat, dep: dep });
     });
-    const _0xe7 = Math.sqrt((_0xdc * _0xdc) + (_0xdd * _0xdd)); const _0xe8 = _0xde / _0xe7;
-    let _0xe9 = `<span style="color:white; font-weight:bold;">TRAVERSE CLOSURE REPORT</span><br>Linear Error: ${_0xe7.toFixed(3)} FT<br>Precision Ratio: 1:${Math.round(_0xe8)}<br><br><span style="color:var(--success); font-weight:bold;">COMPASS RULE ADJUSTMENTS</span><br>`;
-    _0xdf.forEach((_0xea, _0xeb) => {
-        const _0xec = _0xea.lat - (_0xdc * (_0xea.dist / _0xde)); const _0xed = _0xea.dep - (_0xdd * (_0xea.dist / _0xde));
-        _0xe9 += `Leg ${_0xeb+1}: Lat Adj = ${(_0xec - _0xea.lat).toFixed(4)}, Dep Adj = ${(_0xed - _0xea.dep).toFixed(4)}<br>`;
+    const error = Math.sqrt((sumLat * sumLat) + (sumDep * sumDep)); const precision = sumDist / error;
+    let report = `<span style="color:white; font-weight:bold;">TRAVERSE CLOSURE REPORT</span><br>Linear Error: ${error.toFixed(3)} FT<br>Precision Ratio: 1:${Math.round(precision)}<br><br><span style="color:var(--success); font-weight:bold;">COMPASS RULE ADJUSTMENTS</span><br>`;
+    legs.forEach((leg, i) => {
+        const adjLat = leg.lat - (sumLat * (leg.dist / sumDist)); const adjDep = leg.dep - (sumDep * (leg.dist / sumDist));
+        report += `Leg ${i+1}: Lat Adj = ${(adjLat - leg.lat).toFixed(4)}, Dep Adj = ${(adjDep - leg.dep).toFixed(4)}<br>`;
     });
-    const _0xee = document.getElementById('traverseReport'); _0xee.innerHTML = _0xe9; _0xee.style.display = 'block';
+    const repEl = document.getElementById('traverseReport'); repEl.innerHTML = report; repEl.style.display = 'block';
 };
 
 window.compileReport = function() {
-    const _0xef = document.getElementById('fbProject').value.trim() || "N/A"; const _0xf0 = document.getElementById('fbJobNo').value.trim() || "N/A";
-    const _0xf1 = document.getElementById('fbCrew').value.trim() || "N/A"; const _0xf2 = document.getElementById('fbTemp').value.trim() || "N/A"; const _0xf3 = document.getElementById('fbWeather').value.trim() || "N/A";
-    let _0xf4 = `SURVEY FIELD BOOK REPORT\nProject: ${_0xef} | Job: ${_0xf0}\nCrew: ${_0xf1} | Temp: ${_0xf2}° | Weather: ${_0xf3}\nDate: ${new Date().toLocaleDateString()}\n----------------------------------------\n`;
-    const _0xf5 = document.querySelectorAll('#levelRows tr'); if (_0xf5.length > 0) { _0xf4 += "\n--- LEVEL LOOP ---\nSTA | BS | HI | FS | ELEV\n"; _0xf5.forEach(_0xf6 => { const _0xf7 = Array.from(_0xf6.querySelectorAll('input')).map(_0xf8 => _0xf8.value); _0xf4 += `${_0xf7[0]} | ${_0xf7[1]} | ${_0xf7[2]} | ${_0xf7[3]} | ${_0xf7[4]}\n`; }); }
-    const _0xf9 = document.querySelectorAll('#traverseRows tr'); if (_0xf9.length > 0) { _0xf4 += "\n--- TRAVERSE ---\nSETUP | TARGET | AZIMUTH | DIST\n"; _0xf9.forEach(_0xfa => { const _0xfb = Array.from(_0xfa.querySelectorAll('input')).map(_0xfc => _0xfc.value); _0xf4 += `${_0xfb[0]} | ${_0xfb[1]} | ${_0xfb[2]} | ${_0xfb[3]}\n`; }); }
-    const _0xfd = document.querySelectorAll('#builderRows tr'); if (_0xfd.length > 0) { _0xf4 += "\n--- ROD SHOTS ---\nPOINT | ROD | GRADE | CUT/FILL | DESC\n"; _0xfd.forEach(_0xfe => { const _0xff = Array.from(_0xfe.querySelectorAll('input')).map(_0x100 => _0x100.value); _0xf4 += `${_0xff[0]} | ${_0xff[1]} | ${_0xff[2]} | ${_0xff[3]} | ${_0xff[4]}\n`; }); }
-    const _0x101 = document.getElementById('notebookFreeform').value.trim(); if (_0x101) { _0xf4 += `\n--- NOTES ---\n${_0x101}\n`; } return _0xf4;
+    const proj = document.getElementById('fbProject').value.trim() || "N/A"; const job = document.getElementById('fbJobNo').value.trim() || "N/A";
+    const crew = document.getElementById('fbCrew').value.trim() || "N/A"; const temp = document.getElementById('fbTemp').value.trim() || "N/A"; const weather = document.getElementById('fbWeather').value.trim() || "N/A";
+    let text = `SURVEY FIELD BOOK REPORT\nProject: ${proj} | Job: ${job}\nCrew: ${crew} | Temp: ${temp}° | Weather: ${weather}\nDate: ${new Date().toLocaleDateString()}\n----------------------------------------\n`;
+    const levels = document.querySelectorAll('#levelRows tr'); if (levels.length > 0) { text += "\n--- LEVEL LOOP ---\nSTA | BS | HI | FS | ELEV\n"; levels.forEach(r => { const vals = Array.from(r.querySelectorAll('input')).map(i => i.value); text += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]} | ${vals[4]}\n`; }); }
+    const travers = document.querySelectorAll('#traverseRows tr'); if (travers.length > 0) { text += "\n--- TRAVERSE ---\nSETUP | TARGET | AZIMUTH | DIST\n"; travers.forEach(r => { const vals = Array.from(r.querySelectorAll('input')).map(i => i.value); text += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]}\n`; }); }
+    const builders = document.querySelectorAll('#builderRows tr'); if (builders.length > 0) { text += "\n--- ROD SHOTS ---\nPOINT | ROD | GRADE | CUT/FILL | DESC\n"; builders.forEach(r => { const vals = Array.from(r.querySelectorAll('input')).map(i => i.value); text += `${vals[0]} | ${vals[1]} | ${vals[2]} | ${vals[3]} | ${vals[4]}\n`; }); }
+    const notes = document.getElementById('notebookFreeform').value.trim(); if (notes) { text += `\n--- NOTES ---\n${notes}\n`; } return text;
 };
 
 window.previewFieldBook = function() { document.getElementById('reportPreviewContainer').innerText = compileReport(); document.getElementById('previewOverlay').style.display = 'flex'; };
 
 window.exportFieldBookLocal = function() {
-    const _0x102 = compileReport();
-    downloadFile(`Project_${activeProjectId}_FieldBook.txt`, _0x102, 'text/plain');
+    const text = compileReport();
+    downloadFile(`Project_${activeProjectId}_FieldBook.txt`, text, 'text/plain');
 };
 
-window.changeUIScale = function(_0x103) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(_0x103 !== 'scale-normal') document.body.classList.add(_0x103); localStorage.setItem('uiScale', _0x103); };
-window.updateStartId = function(_0x104) { localStorage.setItem('startIdInput', _0x104); }
+window.changeUIScale = function(scale) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(scale !== 'scale-normal') document.body.classList.add(scale); localStorage.setItem('uiScale', scale); };
+window.updateStartId = function(val) { localStorage.setItem('startIdInput', val); }
 document.getElementById('startIdInput').value = localStorage.getItem('startIdInput') || 1;
-window.togglePocketMode = () => { const _0x105 = document.getElementById('pocketModeOverlay'); _0x105.style.display = _0x105.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
+window.togglePocketMode = () => { const overlay = document.getElementById('pocketModeOverlay'); overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
 </script>
 </body>
 </html>
