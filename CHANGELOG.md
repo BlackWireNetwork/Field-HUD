@@ -14,4 +14,4 @@
 * **COGO Tools:** Enabled direct map-point selection for inverse calculations.
 
 ### [1.0] - 2026-10-10
-* **Initial Release:** Deployed offline-capable PWA on GitHub Pages with mapping and CSV/DXF exports
+* **Initial Release:** Deployed offline-capable PWA on GitHub Pages with mapping and CSV/DXF exports.
