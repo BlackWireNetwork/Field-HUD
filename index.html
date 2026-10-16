@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.6";
+const CURRENT_VERSION = "1.7";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -522,7 +522,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
     </div>
     <div class="help-card">
         <h3>3. Smart Linework & Feature Codes</h3>
-        <p>Type codes like <b>EP</b> (Edge of Pavement) or <b>BOC</b> (Back of Curb) in the search bar. Use modifier buttons: <b>B</b> starts a new line string, and <b>E</b> terminates it automatically on the map.</p>
+        <p>Type any feature code (e.g. <b>TOPO</b>, <b>EP</b>, <b>BOC</b>) in the search bar. Use modifier buttons: <b>B</b> starts a new line string, and <b>E</b> terminates it automatically on the map.</p>
     </div>
     <div class="help-card">
         <h3>4. COGO Suite & Stakeout Navigation</h3>
@@ -794,6 +794,7 @@ window.deletePointFromMap = async function(idx) {
     map.removeLayer(droppedPins[idx]); 
     pinData.splice(idx, 1); 
     droppedPins.splice(idx, 1);
+    clearCogoSelection();
     await savePinsToDB(); 
     map.closePopup();
     rebuildSmartLinework();
@@ -874,6 +875,7 @@ window.deletePointManager = async function(idx) {
         clearStakeoutTarget();
     }
     map.removeLayer(droppedPins[idx]); pinData.splice(idx, 1); droppedPins.splice(idx, 1);
+    clearCogoSelection();
     await savePinsToDB(); loadPointManagerTable(); rebuildSmartLinework();
 };
 
@@ -993,6 +995,7 @@ window.clearActiveProjectData = async function() {
     Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); });
     activeStrings = {};
     clearStakeoutTarget();
+    clearCogoSelection();
     alert(`Project "${jobName}" has been cleared.`);
 };
 
@@ -1085,11 +1088,20 @@ function rebuildSmartLinework() {
     Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); }); activeStrings = {};
     pinData.forEach(pt => {
         const parts = pt.desc.split(' '); const base = parts[0]; const isBegin = parts.includes('B'); const isEnd = parts.includes('E');
-        const linearCodes = ["EP", "BOC", "FL", "TC", "SW", "FNC", "CL"];
-        if(linearCodes.includes(base)) {
-            let key = base; if(isBegin || !activeStrings[key]) { if(isBegin) key = base + "_" + pt.id; activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); }
-            let poly = activeStrings[key]; if(!poly) { activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); poly = activeStrings[key]; }
-            poly.addLatLng([pt.lat, pt.lng]); if(isEnd) { activeStrings[base] = null; }
+        // Universal linework: any code with B/E or standard linear codes will string together
+        let key = base; 
+        if(isBegin || !activeStrings[key]) { 
+            if(isBegin) key = base + "_" + pt.id; 
+            activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); 
+        }
+        let poly = activeStrings[key]; 
+        if(!poly) { 
+            activeStrings[key] = L.polyline([], {color: '#f43f5e', weight: 3}).addTo(map); 
+            poly = activeStrings[key]; 
+        }
+        poly.addLatLng([pt.lat, pt.lng]); 
+        if(isEnd) { 
+            activeStrings[base] = null; 
         }
     });
 }
@@ -1339,7 +1351,7 @@ window.exportFieldBookLocal = function() {
 
 window.changeUIScale = function(scale) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(scale !== 'scale-normal') document.body.classList.add(scale); localStorage.setItem('uiScale', scale); };
 window.updateStartId = function(val) { localStorage.setItem('startIdInput', val); }
-document.getElementById('startIdInput').value = localStorage.getItem('startIdInput') || 1;
+document.getElementById('startIdInput').value = localStorage.getItem('startIdInput'] || 1;
 window.togglePocketMode = () => { const overlay = document.getElementById('pocketModeOverlay'); overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
 </script>
 </body>
