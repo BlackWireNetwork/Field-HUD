@@ -54,6 +54,6 @@ Field HUD Pro is a serverless, offline-capable Progressive Web App (PWA) designe
 
 ---
     
-## Professional Disclaimer
+## Disclaimer
 
 This software is an independent field assistant tool. The licensed Professional Land Surveyor or Crew Chief in charge maintains sole legal responsibility for verifying all construction layouts, property boundaries, and as-built measurements against recorded plats and physical control monuments.
