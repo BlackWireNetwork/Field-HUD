@@ -7,7 +7,7 @@
 <title>Field HUD: Pro Edition</title>
 
 <script>
-const CURRENT_VERSION = "1.7";
+const CURRENT_VERSION = "1.8";
 
 fetch('version.txt?t=' + new Date().getTime())
     .then(response => response.text())
@@ -47,7 +47,8 @@ html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden;
 .top-bar { position: absolute; top: 1rem; left: 4.5rem; right: 8.5rem; z-index: 50; display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem 0.75rem; }
 .hamburger-btn { position: absolute; top: 1rem; left: 1rem; z-index: 60; width: 3rem; height: 3rem; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; cursor: pointer; font-weight: 900; }
 .side-tools { position: absolute; top: 1rem; right: 1rem; z-index: 50; display: flex; flex-direction: column; gap: 0.4rem; }
-.bottom-drawer { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; z-index: 50; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.bottom-drawer { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; z-index: 50; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; transition: transform 0.3s ease; }
+.bottom-drawer.minimized { transform: translateY(calc(100% - 3rem)); }
 .side-drawer { position: absolute; top: 0; left: -320px; width: 300px; height: 100vh; z-index: 2000; background: var(--panel-bg); transition: left 0.3s ease; padding: 1.5rem; padding-bottom: 6rem; overflow-y: auto; border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 1rem; }
 .side-drawer.open { left: 0; }
 .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 1999; backdrop-filter: blur(2px); }
@@ -72,6 +73,9 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 .modifier-bar { display: flex; gap: 0.25rem; margin-top: 0.35rem; }
 .mod-btn { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: inherit; padding: 0.3rem 0.5rem; border-radius: 0.25rem; font-weight: 900; font-size: 0.75rem; cursor: pointer; flex-grow: 1; }
 .mod-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+.fav-bar { display: flex; gap: 0.3rem; overflow-x: auto; padding-bottom: 0.3rem; margin-bottom: 0.3rem; white-space: nowrap; }
+.fav-pill { background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); color: white; padding: 0.25rem 0.6rem; border-radius: 0.25rem; font-weight: 700; font-size: 0.7rem; cursor: pointer; flex-shrink: 0; }
+.fav-pill:active { transform: scale(0.95); }
 .field-book-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-family: monospace; font-size: 0.85rem; }
 .field-book-table th, .field-book-table td { border: 1px solid var(--glass-border); padding: 0.3rem; text-align: center; }
 .field-book-table th { background: rgba(59, 130, 246, 0.25); color: var(--accent); font-weight: bold; }
@@ -103,7 +107,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 
 <div id="map"></div>
 <div class="crosshair"></div>
-<button class="btn btn-icon glass-panel hamburger-btn" onclick="toggleDrawer()">MENU</button>
+<button class="btn btn-icon glass-panel hamburger-btn" onclick="triggerHaptic(30); toggleDrawer()">MENU</button>
 
 <div class="top-bar glass-panel">
 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -111,15 +115,18 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <h1 style="font-size: 1rem; font-weight: 900; color: var(--accent); margin: 0;">FIELD HUD</h1>
 <p id="statusText" style="font-size: 0.7rem; font-family: monospace; color: #9ca3af; font-weight: bold;">GPS INIT...</p>
 </div>
+<div style="display: flex; align-items: center; gap: 0.5rem;">
+<span id="offlineBadge" style="font-size: 0.6rem; font-family: monospace; color: var(--success); background: rgba(16,185,129,0.15); padding: 0.1rem 0.3rem; border-radius: 0.2rem; font-weight: bold;">OFFLINE READY</span>
 <div id="activeCrsLabel" style="font-size: 0.65rem; font-family: monospace; color: #38bdf8; font-weight: bold;">CRS: AUTO</div>
+</div>
 </div>
 
 <div id="targetIndicator">
 <div style="display:flex; justify-content:space-between; align-items:center;">
     <div id="telDistHeader" style="font-size: 1.1rem; font-weight: 900; color: white; font-family: monospace;">-- FT</div>
     <div id="telDirectionArrow" style="font-size: 0.85rem; font-weight: 900; color: #38bdf8; margin-left: 0.4rem;">NORTH</div>
-    <button onclick="toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.4rem;">VISUAL</button>
-    <button onclick="clearStakeoutTarget()" style="background:#ef4444; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.3rem;">X</button>
+    <button onclick="triggerHaptic(20); toggleBullseye()" style="background:#3b82f6; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.4rem;">VISUAL</button>
+    <button onclick="triggerHaptic(20); clearStakeoutTarget()" style="background:#ef4444; border:none; border-radius:0.25rem; padding:0.1rem 0.3rem; font-size:0.55rem; font-weight:bold; color:white; cursor:pointer; margin-left:0.3rem;">X</button>
 </div>
 <div id="telDeltas" style="font-size: 0.7rem; font-family: monospace; color: #fbbf24; font-weight: 600; margin-top:0.1rem;">DN: -- | DE: --</div>
 </div>
@@ -127,33 +134,45 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 
 <div id="bullseyePanel">
     <canvas id="bullseyeCanvas" width="160" height="160" style="position:absolute; top:0; left:0; border-radius:50%;"></canvas>
-    <div style="position:absolute; top:-20px; right:-10px;"><button onclick="toggleBullseye()" style="background:var(--danger); border:none; color:white; border-radius:50%; width:24px; height:24px; font-weight:bold; cursor:pointer;">X</button></div>
+    <div style="position:absolute; top:-20px; right:-10px;"><button onclick="triggerHaptic(20); toggleBullseye()" style="background:var(--danger); border:none; color:white; border-radius:50%; width:24px; height:24px; font-weight:bold; cursor:pointer;">X</button></div>
 </div>
 
 <div id="cogoSelectionBar">
     <span id="cogoSelectionText" style="font-family:monospace; font-weight:bold; color:white; font-size:0.8rem;">Selected: --</span>
-    <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedInverse()">INV</button>
-    <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="runSelectedBaseline()">STA/OFF</button>
-    <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="clearCogoSelection()">X</button>
+    <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="triggerHaptic(20); runSelectedInverse()">INV</button>
+    <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="triggerHaptic(20); runSelectedBaseline()">STA/OFF</button>
+    <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem; width:auto;" onclick="triggerHaptic(20); clearCogoSelection()">X</button>
 </div>
 
 <div class="side-tools">
-<button class="btn btn-icon glass-panel" onclick="togglePocketMode()" title="Battery Saver">BAT</button>
-<button class="btn btn-icon glass-panel" onclick="openModal('settingsOverlay')" style="color: #60a5fa;" title="Settings">SET</button>
+<button class="btn btn-icon glass-panel" onclick="triggerHaptic(30); togglePocketMode()" title="Battery Saver">BAT</button>
+<button class="btn btn-icon glass-panel" onclick="triggerHaptic(30); openModal('settingsOverlay')" style="color: #60a5fa;" title="Settings">SET</button>
 <button class="btn btn-icon glass-panel" id="centerBtn" style="color: var(--accent);" title="Center GPS">GPS</button>
-<button class="btn btn-icon glass-panel" onclick="openModal('helpOverlay')" style="color: #fcd34d;" title="Manual">HLP</button>
+<button class="btn btn-icon glass-panel" onclick="triggerHaptic(30); openModal('helpOverlay')" style="color: #fcd34d;" title="Manual">HLP</button>
 </div>
 
-<div class="bottom-drawer glass-panel">
+<div class="bottom-drawer glass-panel" id="bottomDrawer">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.15rem;">
+<span style="font-size: 0.65rem; color: #9ca3af; font-family: monospace; font-weight: bold; text-transform: uppercase;">Field Quick HUD</span>
+<button onclick="triggerHaptic(20); toggleBottomDrawerCompact()" id="drawerCollapseBtn" style="background:none; border:none; color:var(--accent); font-size:0.7rem; font-weight:bold; cursor:pointer;">MINIMIZE ▲</button>
+</div>
+<div class="fav-bar">
+<button class="fav-pill" onclick="triggerHaptic(20); selectFavCode('RECON')">RECON</button>
+<button class="fav-pill" onclick="triggerHaptic(20); selectFavCode('EP')">EP</button>
+<button class="fav-pill" onclick="triggerHaptic(20); selectFavCode('BOC')">BOC</button>
+<button class="fav-pill" onclick="triggerHaptic(20); selectFavCode('IPF')">IPF</button>
+<button class="fav-pill" onclick="triggerHaptic(20); selectFavCode('TOPO')">TOPO</button>
+<button class="fav-pill" style="background:var(--accent);" onclick="triggerHaptic(20); openModal('codeLibraryOverlay')">LIB...</button>
+</div>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; align-items: start;">
 <div class="dropdown-container" id="dropdownContainer">
 <input type="text" id="searchInput" placeholder="SEARCH CODE" autocomplete="off">
 <div class="dropdown-list" id="dropdownList"></div>
 <div class="modifier-bar">
-<button class="mod-btn" onclick="toggleMod(this, 'B')">B (Begin)</button>
-<button class="mod-btn" onclick="toggleMod(this, 'E')">E (End)</button>
-<button class="mod-btn" onclick="toggleMod(this, 'PC')">PC</button>
-<button class="mod-btn" onclick="toggleMod(this, 'PT')">PT</button>
+<button class="mod-btn" onclick="triggerHaptic(20); toggleMod(this, 'B')">B (Begin)</button>
+<button class="mod-btn" onclick="triggerHaptic(20); toggleMod(this, 'E')">E (End)</button>
+<button class="mod-btn" onclick="triggerHaptic(20); toggleMod(this, 'PC')">PC</button>
+<button class="mod-btn" onclick="triggerHaptic(20); toggleMod(this, 'PT')">PT</button>
 </div>
 </div>
 <div>
@@ -161,10 +180,10 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 0.3rem; text-align: right; font-family: monospace;" id="finalDescPreview">PREVIEW: RECON</div>
 </div>
 </div>
-<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0.5rem; margin-top:0.5rem;">
+<div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:0.5rem; margin-top:0.25rem;">
 <button id="gpsPinBtn" class="btn" style="background: var(--danger);">STORE GPS</button>
-<button id="mapPinBtn" class="btn" style="background: #8b5cf6;">STORE MAP</button>
-<button class="btn" style="background: #f59e0b;" onclick="document.getElementById('pointCameraInput').click()">SNAP PHOTO</button>
+<button id="mapPinBtn" class="btn" style="background: #8b5cf6;" onclick="triggerHaptic(40)">STORE MAP</button>
+<button class="btn" style="background: #f59e0b;" onclick="triggerHaptic(30); document.getElementById('pointCameraInput').click()">SNAP PHOTO</button>
 </div>
 <input type="file" id="pointCameraInput" accept="image/*" capture="environment" style="display:none;" onchange="handlePointPhoto(event)">
 <div id="photoStatusIndicator" style="display:none; text-align:center; font-size:0.75rem; color:#f59e0b; font-family:monospace; font-weight:bold;">PHOTO ATTACHED TO NEXT SHOT</div>
@@ -179,27 +198,27 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 <span style="font-size: 0.65rem; color: var(--success); font-family: monospace; font-weight: bold;">AUTOSAVE ON</span>
 </div>
 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.3rem;">
-<button class="btn" style="background: var(--accent); font-size: 0.65rem; padding: 0.3rem;" onclick="openModal('projectManagerOverlay')">SWITCH</button>
-<button class="btn" style="background: #8b5cf6; font-size: 0.65rem; padding: 0.3rem;" onclick="renameActiveProject()">RENAME</button>
-<button class="btn" style="background: var(--success); font-size: 0.65rem; padding: 0.3rem;" onclick="createNewProject()">NEW</button>
+<button class="btn" style="background: var(--accent); font-size: 0.65rem; padding: 0.3rem;" onclick="triggerHaptic(20); openModal('projectManagerOverlay')">SWITCH</button>
+<button class="btn" style="background: #8b5cf6; font-size: 0.65rem; padding: 0.3rem;" onclick="triggerHaptic(20); renameActiveProject()">RENAME</button>
+<button class="btn" style="background: var(--success); font-size: 0.65rem; padding: 0.3rem;" onclick="triggerHaptic(20); createNewProject()">NEW</button>
 </div>
 </div>
 
 <h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">HUB & TOOLS</h2>
-<button class="btn" style="background: #6366f1; margin-bottom:0.5rem;" onclick="openModal('dataHubOverlay');">Data & Files</button>
-<button class="btn" style="background: #38bdf8; margin-bottom:0.5rem;" onclick="openModal('cogoSuiteOverlay');">COGO Suite</button>
+<button class="btn" style="background: #6366f1; margin-bottom:0.5rem;" onclick="triggerHaptic(20); openModal('dataHubOverlay');">Data & Files</button>
+<button class="btn" style="background: #38bdf8; margin-bottom:0.5rem;" onclick="triggerHaptic(20); openModal('cogoSuiteOverlay');">COGO Suite</button>
 
 <h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">CAD & MAP</h2>
-<button class="btn" style="background: #a855f7; margin-bottom:0.5rem;" onclick="openModal('cadManagerOverlay')">Layer & Point Filters</button>
-<button class="btn" style="background: #10b981; margin-bottom:0.5rem;" onclick="document.getElementById('csvInput').click();">Import Stakeout CSV</button>
+<button class="btn" style="background: #a855f7; margin-bottom:0.5rem;" onclick="triggerHaptic(20); openModal('cadManagerOverlay')">Layer & Point Filters</button>
+<button class="btn" style="background: #10b981; margin-bottom:0.5rem;" onclick="triggerHaptic(20); document.getElementById('csvInput').click();">Import Stakeout CSV</button>
 <input type="file" id="csvInput" accept=".csv,.txt" style="display: none;" onchange="handleCSVImport(event)">
-<button class="btn" style="background: #ec4899; margin-bottom:0.5rem;" onclick="document.getElementById('cadInput').click();">Import Vector / DTM</button>
+<button class="btn" style="background: #ec4899; margin-bottom:0.5rem;" onclick="triggerHaptic(20); document.getElementById('cadInput').click();">Import Vector / DTM</button>
 <input type="file" id="cadInput" accept=".geojson,.json,.txt" style="display: none;" onchange="handleCADImport(event)">
 
 <h2 style="font-size: 1.15rem; font-weight: 900; margin-top: 0.5rem; margin-bottom: 0.5rem;">SETTINGS & HELP</h2>
-<button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="openModal('rtkOverlay')">RTK Connectivity</button>
-<button class="btn" style="background: #6b7280; margin-bottom:0.5rem;" onclick="openModal('aboutOverlay')">About & Legal</button>
-<button class="btn" style="background: var(--danger); margin-bottom:1rem;" onclick="clearActiveProjectData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
+<button class="btn" style="background: #4b5563; margin-bottom:0.5rem;" onclick="triggerHaptic(20); openModal('rtkOverlay')">RTK Connectivity</button>
+<button class="btn" style="background: #6b7280; margin-bottom:0.5rem;" onclick="triggerHaptic(20); openModal('aboutOverlay')">About & Legal</button>
+<button class="btn" style="background: var(--danger); margin-bottom:1rem;" onclick="triggerHaptic(40); clearActiveProjectData(); closeDrawer();">CLEAR ACTIVE PROJECT</button>
 </div>
 
 <div id="termsOverlay">
@@ -209,7 +228,7 @@ input, select, textarea { background: rgba(0,0,0,0.4); border: 1px solid var(--g
 Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are armed. The professional surveyor or crew chief in charge is strictly responsible for verifying all field measurements.
 </p>
 <div style="display: flex; gap: 1rem;">
-<button class="btn" style="background: var(--success);" onclick="requestGeoPermissionAndEnter()">AGREE & ENTER</button>
+<button class="btn" style="background: var(--success);" onclick="triggerHaptic(40); requestGeoPermissionAndEnter()">AGREE & ENTER</button>
 </div>
 </div>
 </div>
@@ -218,11 +237,22 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
   <div class="modal-content glass-panel" style="max-width: 450px;">
     <div class="flex justify-between items-center mb-3">
       <h2 style="font-size: 1.2rem; font-weight: 900; color: var(--accent);">SELECT OR SWITCH PROJECT</h2>
-      <button onclick="closeModal('projectManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+      <button onclick="triggerHaptic(20); closeModal('projectManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
     </div>
     <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.75rem;">Choose an active project file below:</p>
     <div id="projectListContainer" style="display: flex; flex-direction: column; gap: 0.4rem; max-height: 250px; overflow-y: auto; margin-bottom: 1rem;"></div>
-    <button class="btn" style="background: var(--success);" onclick="createNewProject(); closeModal('projectManagerOverlay');">CREATE NEW PROJECT</button>
+    <button class="btn" style="background: var(--success);" onclick="triggerHaptic(30); createNewProject(); closeModal('projectManagerOverlay');">CREATE NEW PROJECT</button>
+  </div>
+</div>
+
+<div id="codeLibraryOverlay" class="modal-bg">
+  <div class="modal-content glass-panel" style="max-width: 600px;">
+    <div class="flex justify-between items-center mb-3">
+      <h2 style="font-size: 1.3rem; font-weight: 900; color: var(--accent);">CODE LIBRARY</h2>
+      <button onclick="triggerHaptic(20); closeModal('codeLibraryOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+    </div>
+    <input type="text" id="libSearchInput" placeholder="Search code library..." oninput="filterCodeLibrary(this.value)" style="margin-bottom: 0.75rem;">
+    <div id="codeLibraryList" style="max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem;"></div>
   </div>
 </div>
 
@@ -230,12 +260,12 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
   <div class="modal-content glass-panel" style="max-width: 750px;">
     <div class="flex justify-between items-center mb-3">
       <h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">DATA HUB</h2>
-      <button onclick="closeModal('dataHubOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+      <button onclick="triggerHaptic(20); closeModal('dataHubOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.25rem; margin-bottom: 1rem;">
-      <button id="dhTabBtn-points" class="btn" style="background:var(--accent); font-size:0.75rem;" onclick="switchDataHubTab('points')">Points</button>
-      <button id="dhTabBtn-files" class="btn" style="background:#4b5563; font-size:0.75rem;" onclick="switchDataHubTab('files')">Files & Export</button>
-      <button id="dhTabBtn-book" class="btn" style="background:#4b5563; font-size:0.75rem;" onclick="switchDataHubTab('book')">Field Book</button>
+      <button id="dhTabBtn-points" class="btn" style="background:var(--accent); font-size:0.75rem;" onclick="triggerHaptic(20); switchDataHubTab('points')">Points</button>
+      <button id="dhTabBtn-files" class="btn" style="background:#4b5563; font-size:0.75rem;" onclick="triggerHaptic(20); switchDataHubTab('files')">Files & Export</button>
+      <button id="dhTabBtn-book" class="btn" style="background:#4b5563; font-size:0.75rem;" onclick="triggerHaptic(20); switchDataHubTab('book')">Field Book</button>
     </div>
     <div id="dh-points">
         <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.5rem;">Manage, edit, view photos, or delete stored project points.</p>
@@ -248,17 +278,17 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
     </div>
     <div id="dh-files" style="display:none;">
         <div class="flex gap-2 mb-3">
-            <button class="btn" style="background:var(--success); font-size:0.75rem;" onclick="exportCSV()">EXPORT CSV</button>
-            <button class="btn" style="background:#8b5cf6; font-size:0.75rem;" onclick="exportDXF()">EXPORT DXF</button>
+            <button class="btn" style="background:var(--success); font-size:0.75rem;" onclick="triggerHaptic(30); exportCSV()">EXPORT CSV</button>
+            <button class="btn" style="background:#8b5cf6; font-size:0.75rem;" onclick="triggerHaptic(30); exportDXF()">EXPORT DXF</button>
         </div>
         <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 0.5rem;">Local files generated via client download:</p>
         <div style="max-height: 300px; overflow-y: auto;">
         <table class="field-book-table">
         <thead><tr><th>Export Action</th><th>Format</th><th>Status</th></tr></thead>
         <tbody>
-            <tr><td style="text-align:left;">Download PNEZD Points</td><td>CSV</td><td><button class="btn" style="background:var(--success); font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="exportCSV()">DOWNLOAD</button></td></tr>
-            <tr><td style="text-align:left;">Download CAD Entities</td><td>DXF</td><td><button class="btn" style="background:#8b5cf6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="exportDXF()">DOWNLOAD</button></td></tr>
-            <tr><td style="text-align:left;">Download Field Notes</td><td>TXT</td><td><button class="btn" style="background:var(--accent); font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="exportFieldBookLocal()">DOWNLOAD</button></td></tr>
+            <tr><td style="text-align:left;">Download PNEZD Points</td><td>CSV</td><td><button class="btn" style="background:var(--success); font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="triggerHaptic(20); exportCSV()">DOWNLOAD</button></td></tr>
+            <tr><td style="text-align:left;">Download CAD Entities</td><td>DXF</td><td><button class="btn" style="background:#8b5cf6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="triggerHaptic(20); exportDXF()">DOWNLOAD</button></td></tr>
+            <tr><td style="text-align:left;">Download Field Notes</td><td>TXT</td><td><button class="btn" style="background:var(--accent); font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="triggerHaptic(20); exportFieldBookLocal()">DOWNLOAD</button></td></tr>
         </tbody>
         </table>
         </div>
@@ -274,19 +304,19 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         <input type="text" id="fbWeather" placeholder="Weather">
         </div>
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.25rem; margin-bottom: 0.5rem;">
-        <button id="tabBtn-level" class="btn tab-btn" style="background: var(--accent); font-size: 0.7rem;" onclick="switchBookTab('level')">Level</button>
-        <button id="tabBtn-traverse" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="switchBookTab('traverse')">Traverse</button>
-        <button id="tabBtn-builder" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="switchBookTab('builder')">Rod</button>
-        <button id="tabBtn-notes" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="switchBookTab('notes')">Notes</button>
+        <button id="tabBtn-level" class="btn tab-btn" style="background: var(--accent); font-size: 0.7rem;" onclick="triggerHaptic(20); switchBookTab('level')">Level</button>
+        <button id="tabBtn-traverse" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="triggerHaptic(20); switchBookTab('traverse')">Traverse</button>
+        <button id="tabBtn-builder" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="triggerHaptic(20); switchBookTab('builder')">Rod</button>
+        <button id="tabBtn-notes" class="btn tab-btn" style="background: #4b5563; font-size: 0.7rem;" onclick="triggerHaptic(20); switchBookTab('notes')">Notes</button>
         </div>
         <div id="levelBookSection">
         <table class="field-book-table">
         <thead><tr><th>Sta</th><th>BS</th><th>HI</th><th>FS</th><th>Elev</th><th>Del</th></tr></thead>
         <tbody id="levelRows">
-        <tr><td><input value="BM1"></td><td><input value="4.25"></td><td><input value="104.25"></td><td><input value="-"></td><td><input value="100.00"></td><td><button class="del-row-btn" onclick="this.closest('tr').remove()">X</button></td></tr>
+        <tr><td><input value="BM1"></td><td><input value="4.25"></td><td><input value="104.25"></td><td><input value="-"></td><td><input value="100.00"></td><td><button class="del-row-btn" onclick="triggerHaptic(20); this.closest('tr').remove()">X</button></td></tr>
         </tbody>
         </table>
-        <button class="btn" style="background: var(--success); margin-top: 0.4rem;" onclick="addLevelRow()">+ Add Level Row</button>
+        <button class="btn" style="background: var(--success); margin-top: 0.4rem;" onclick="triggerHaptic(20); addLevelRow()">+ Add Level Row</button>
         </div>
         <div id="traverseBookSection" style="display: none;">
         <table class="field-book-table">
@@ -294,8 +324,8 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         <tbody id="traverseRows"></tbody>
         </table>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.4rem;">
-        <button class="btn" style="background: var(--success);" onclick="addTraverseRow()">+ Add Leg</button>
-        <button class="btn" style="background: #8b5cf6;" onclick="adjustTraverse()">Adjust</button>
+        <button class="btn" style="background: var(--success);" onclick="triggerHaptic(20); addTraverseRow()">+ Add Leg</button>
+        <button class="btn" style="background: #8b5cf6;" onclick="triggerHaptic(20); adjustTraverse()">Adjust</button>
         </div>
         <div id="traverseReport" style="display:none; font-family: monospace; font-size:0.75rem; background:rgba(0,0,0,0.4); padding:0.5rem; margin-top:0.5rem; color:#9ca3af; border-radius:0.5rem;"></div>
         </div>
@@ -304,14 +334,14 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         <thead><tr><th>Point</th><th>Rod</th><th>Grade</th><th>Cut/Fill</th><th>Desc</th><th>Del</th></tr></thead>
         <tbody id="builderRows"></tbody>
         </table>
-        <button class="btn" style="background: var(--success); margin-top: 0.4rem;" onclick="addBuilderRow()">+ Add Rod Shot</button>
+        <button class="btn" style="background: var(--success); margin-top: 0.4rem;" onclick="triggerHaptic(20); addBuilderRow()">+ Add Rod Shot</button>
         </div>
         <div id="notesBookSection" style="display: none;">
         <textarea id="notebookFreeform" rows="5" placeholder="Freeform notes..." style="width:100%; background:rgba(0,0,0,0.3); padding:0.5rem;"></textarea>
         </div>
         <div class="flex gap-2 mt-3">
-        <button class="btn" style="background: var(--success); flex:1;" onclick="previewFieldBook()">Preview Report</button>
-        <button class="btn" style="background: var(--accent); flex:1;" onclick="exportFieldBookLocal()">Export Notes</button>
+        <button class="btn" style="background: var(--success); flex:1;" onclick="triggerHaptic(20); previewFieldBook()">Preview Report</button>
+        <button class="btn" style="background: var(--accent); flex:1;" onclick="triggerHaptic(20); exportFieldBookLocal()">Export Notes</button>
         </div>
     </div>
   </div>
@@ -321,13 +351,13 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
   <div class="modal-content glass-panel" style="max-width: 600px;">
     <div class="flex justify-between items-center mb-3">
       <h2 style="font-size: 1.3rem; font-weight: 900; color: #38bdf8;">COGO SUITE</h2>
-      <button onclick="closeModal('cogoSuiteOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+      <button onclick="triggerHaptic(20); closeModal('cogoSuiteOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
     </div>
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0.25rem; margin-bottom: 1rem;">
-      <button id="csTabBtn-inverse" class="btn" style="background:var(--accent); font-size:0.7rem;" onclick="switchCogoTab('inverse')">Inverse</button>
-      <button id="csTabBtn-station" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('station')">Station</button>
-      <button id="csTabBtn-curve" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('curve')">Curve</button>
-      <button id="csTabBtn-conv" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="switchCogoTab('conv')">Conv.</button>
+      <button id="csTabBtn-inverse" class="btn" style="background:var(--accent); font-size:0.7rem;" onclick="triggerHaptic(20); switchCogoTab('inverse')">Inverse</button>
+      <button id="csTabBtn-station" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="triggerHaptic(20); switchCogoTab('station')">Station</button>
+      <button id="csTabBtn-curve" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="triggerHaptic(20); switchCogoTab('curve')">Curve</button>
+      <button id="csTabBtn-conv" class="btn" style="background:#4b5563; font-size:0.7rem;" onclick="triggerHaptic(20); switchCogoTab('conv')">Conv.</button>
     </div>
     <div id="cs-inverse">
         <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;" id="inverseInstruction">Tap two points on the main map to calculate inverse.</p>
@@ -339,7 +369,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
             <div class="flex justify-between py-1 border-b border-gray-700"><span>Bearing:</span> <span id="cogoBearing" style="color: #38bdf8; font-weight: bold;">--</span></div>
             <div class="flex justify-between py-1"><span>Horizontal Dist:</span> <span id="cogoDist" style="color: var(--success); font-weight: bold;">-- FT</span></div>
         </div>
-        <button class="btn" style="background: var(--danger); margin-top: 1rem;" onclick="clearCogoSelection()">CLEAR SELECTION</button>
+        <button class="btn" style="background: var(--danger); margin-top: 1rem;" onclick="triggerHaptic(20); clearCogoSelection()">CLEAR SELECTION</button>
     </div>
     <div id="cs-station" style="display:none;">
         <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.5rem;">Select an alignment polyline and a target point on the map.</p>
@@ -357,7 +387,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
         <div><label style="font-size: 0.75rem; color: #9ca3af; font-weight: bold;">RADIUS (FT)</label><input type="number" id="curveRad" step="0.01"></div>
         <div><label style="font-size: 0.75rem; color: #9ca3af; font-weight: bold;">DELTA ANGLE (°)</label><input type="number" id="curveDelta" step="0.01"></div>
         </div>
-        <button class="btn" style="background: #f43f5e; margin-bottom: 1rem;" onclick="solveCurve()">SOLVE GEOMETRY</button>
+        <button class="btn" style="background: #f43f5e; margin-bottom: 1rem;" onclick="triggerHaptic(20); solveCurve()">SOLVE GEOMETRY</button>
         <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--glass-border); border-radius: 0.5rem; padding: 1rem; font-family: monospace;">
         <div class="flex justify-between py-1 border-b border-gray-700"><span>Arc Length (L):</span> <span id="curveL" style="color: #38bdf8; font-weight: bold;">-- FT</span></div>
         <div class="flex justify-between py-1 border-b border-gray-700"><span>Tangent (T):</span> <span id="curveT" style="color: #10b981; font-weight: bold;">-- FT</span></div>
@@ -396,7 +426,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
   </div>
 </div>
 
-<div id="photoModalOverlay" class="modal-bg" onclick="closeModal('photoModalOverlay')">
+<div id="photoModalOverlay" class="modal-bg" onclick="triggerHaptic(20); closeModal('photoModalOverlay')">
 <div style="max-width: 90%; max-height: 90vh; text-align: center;">
 <img id="lightboxImg" src="" style="max-width: 100%; max-height: 80vh; border-radius: 0.5rem; border: 2px solid var(--glass-border); box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
 <p style="color: white; margin-top: 0.5rem; font-family: monospace;" id="lightboxCaption">Point Photo Inspection</p>
@@ -407,7 +437,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="modal-content glass-panel">
 <div class="flex justify-between items-center mb-4">
 <h2 style="font-size: 1.3rem; font-weight: 900; color: #60a5fa;">HUD SETTINGS</h2>
-<button onclick="closeModal('settingsOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('settingsOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div class="telemetry-row"><span>SPC Zone:</span>
 <select id="spcZoneSelect" onchange="updateCrsDisplay()">
@@ -431,6 +461,12 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <option value="0.15" selected>0.15' (Topo / As-Built)</option>
 <option value="0.50">0.50' (Recon)</option>
 <option value="5.00">5.00' (GIS Base)</option>
+</select>
+</div>
+<div class="telemetry-row"><span>Accuracy Enforcement:</span>
+<select id="strictAccuracyToggle">
+<option value="warn" selected>Warn on High Dilution (Prompt)</option>
+<option value="block">Block Storage if Outside Tolerance</option>
 </select>
 </div>
 <div class="telemetry-row"><span>Voice Guidance (TTS):</span>
@@ -457,7 +493,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="modal-content glass-panel" style="max-width: 500px;">
 <div class="flex justify-between items-center mb-4">
 <h2 style="font-size: 1.3rem; font-weight: 900; color: #ec4899;">CAD & POINT FILTERS</h2>
-<button onclick="closeModal('cadManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('cadManagerOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <p style="font-size:0.75rem; color:#9ca3af; margin-bottom:0.5rem;">Toggle CAD Layers:</p>
 <div id="cadLayerList" style="max-height: 180px; overflow-y: auto; padding-right: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;">
@@ -477,7 +513,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="modal-content glass-panel" style="max-width: 550px;">
 <div class="flex justify-between items-center mb-3">
 <h2 style="font-size: 1.3rem; font-weight: 900; color: #6b7280;">ABOUT & LEGAL</h2>
-<button onclick="closeModal('aboutOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('aboutOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div style="font-size: 0.8rem; color: #d1d5db; line-height: 1.6; max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
 <p style="margin-bottom: 0.75rem;"><b>Field HUD Pro (Edition 2026)</b><br>Engineered for field land surveying, civil construction layout, and CAD drafting workflows.</p>
@@ -502,7 +538,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="modal-content glass-panel" style="max-width: 700px;">
 <div class="flex justify-between items-center mb-2">
 <h2 style="font-size: 1.4rem; font-weight: 900; color: #fcd34d;">FIELD MANUAL & WORKFLOW GUIDE</h2>
-<button onclick="closeModal('helpOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('helpOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <p style="font-size: 0.75rem; color: #9ca3af; margin-bottom: 0.75rem;">Complete breakdown of app buttons, features, and professional field use cases.</p>
 <div class="help-grid" style="max-height: 60vh; overflow-y: auto; padding-right: 0.5rem;">
@@ -522,7 +558,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
     </div>
     <div class="help-card">
         <h3>3. Smart Linework & Feature Codes</h3>
-        <p>Type any feature code (e.g. <b>TOPO</b>, <b>EP</b>, <b>BOC</b>) in the search bar. Use modifier buttons: <b>B</b> starts a new line string, and <b>E</b> terminates it automatically on the map.</p>
+        <p>Type any feature code (e.g. <b>TOPO</b>, <b>EP</b>, <b>BOC</b>) in the search bar or pick from Favorites. Use modifier buttons: <b>B</b> starts a new line string, and <b>E</b> terminates it automatically on the map.</p>
     </div>
     <div class="help-card">
         <h3>4. COGO Suite & Stakeout Navigation</h3>
@@ -537,7 +573,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="modal-content glass-panel" style="max-width: 600px;">
 <div class="flex justify-between items-center mb-2">
 <h2 style="font-size: 1.4rem; font-weight: 900; color: #4b5563;">RTK GNSS CONNECTIVITY GUIDE</h2>
-<button onclick="closeModal('rtkOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('rtkOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <p style="font-size: 0.8rem; color: #9ca3af; margin-bottom: 1rem;">Choose your device platform below to connect an external Bluetooth receiver for true RTK accuracy:</p>
 <div class="help-grid">
@@ -562,11 +598,11 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="parcel-sheet glass-panel" id="parcelSheet">
 <div class="flex justify-between items-center mb-2">
 <h3 id="parcelAddress" style="font-size: 1.05rem; font-weight: 900; color: var(--accent);">Querying County GIS...</h3>
-<button onclick="closeParcelSheet()" class="btn" style="background: var(--danger); width: auto; padding: 0.2rem 0.6rem;">X</button>
+<button onclick="triggerHaptic(20); closeParcelSheet()" class="btn" style="background: var(--danger); width: auto; padding: 0.2rem 0.6rem;">X</button>
 </div>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem; margin-bottom: 0.5rem;">
-<button id="pTab1Btn" class="btn" style="background: var(--accent); font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(1)">Core Telemetry</button>
-<button id="pTab2Btn" class="btn" style="background: #4b5563; font-size: 0.7rem; padding: 0.4rem;" onclick="switchParcelTab(2)">Survey & Deeds</button>
+<button id="pTab1Btn" class="btn" style="background: var(--accent); font-size: 0.7rem; padding: 0.4rem;" onclick="triggerHaptic(20); switchParcelTab(1)">Core Telemetry</button>
+<button id="pTab2Btn" class="btn" style="background: #4b5563; font-size: 0.7rem; padding: 0.4rem;" onclick="triggerHaptic(20); switchParcelTab(2)">Survey & Deeds</button>
 </div>
 <div id="parcelTab1" style="font-family: monospace; font-size: 0.8rem; color: #d1d5db; line-height: 1.5;">
 <p id="parcelOwner">Owner: Verified Local Title</p>
@@ -581,21 +617,21 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <p id="parcelFloodZone">FEMA Flood Zone: Zone X (Unshaded)</p>
 <p id="parcelZoning">Municipal Zoning: R-1 (Single Family)</p>
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.3rem; margin-top: 0.6rem;">
-<button class="btn" style="background: #f59e0b; font-size:0.7rem; padding:0.4rem;" onclick="copyParcelAPN()">COPY MAP NO</button>
+<button class="btn" style="background: #f59e0b; font-size:0.7rem; padding:0.4rem;" onclick="triggerHaptic(20); copyParcelAPN()">COPY MAP NO</button>
 <a href="https://www.greenvillecounty.org/appsas400/RealProperty/" target="_blank" style="text-decoration:none;"><button class="btn" style="background: #3b82f6; font-size:0.7rem; padding:0.4rem;">COUNTY PORTAL</button></a>
 </div>
 </div>
-<a id="parcelLink" href="#" target="_blank"><button class="btn" style="background: #8b5cf6; margin-top: 0.6rem; font-size: 0.8rem;">OPEN REGRID MAP</button></a>
+<a id="parcelLink" href="#" target="_blank"><button class="btn" style="background: #8b5cf6; margin-top: 0.6rem; font-size: 0.8rem;" onclick="triggerHaptic(20)">OPEN REGRID MAP</button></a>
 </div>
 
 <div id="targetOverlay" class="modal-bg">
 <div class="modal-content glass-panel" style="max-width: 400px;">
 <div class="flex justify-between items-center mb-3">
 <h2 style="font-size: 1.3rem; font-weight: 900; color: #10b981;">SET TARGET</h2>
-<button onclick="closeModal('targetOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('targetOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <input type="number" id="targetDesignElev" placeholder="Design Elev (FT) - Leave blank if N/A" step="0.01">
-<button class="btn" style="background: var(--success); margin-top: 1rem;" onclick="confirmTarget()">LOCK TARGET</button>
+<button class="btn" style="background: var(--success); margin-top: 1rem;" onclick="triggerHaptic(30); confirmTarget()">LOCK TARGET</button>
 </div>
 </div>
 
@@ -603,7 +639,7 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <div class="modal-content glass-panel" style="max-width: 650px;">
 <div class="flex justify-between items-center mb-3">
 <h2 style="font-size: 1.3rem; font-weight: 900; color: #6366f1;">REPORT PREVIEW</h2>
-<button onclick="closeModal('previewOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
+<button onclick="triggerHaptic(20); closeModal('previewOverlay')" class="btn" style="background: var(--danger); width:auto; padding: 0.4rem 0.8rem;">X</button>
 </div>
 <div id="reportPreviewContainer" class="report-preview-box"></div>
 </div>
@@ -614,12 +650,18 @@ Welcome to the standalone App. Background Wake Locks and Auto-Fallback GPS are a
 <span style="font-size: 5rem; font-weight: 900; color: var(--success);" id="avgTimer">5</span>
 </div>
 
-<div id="pocketModeOverlay" onclick="togglePocketMode()">
+<div id="pocketModeOverlay" onclick="triggerHaptic(30); togglePocketMode()">
 <span style="color:var(--danger); margin-bottom:1rem; font-size: 2rem; font-weight: 900;">GPS ACTIVE</span>
 <span style="font-size: 1.25rem; font-weight: 600; color: #666;">TAP ANYWHERE TO WAKE</span>
 </div>
 
 <script>
+function triggerHaptic(pattern = 40) {
+    if ('vibrate' in navigator) {
+        try { navigator.vibrate(pattern); } catch(e) {}
+    }
+}
+
 const map = L.map('map', { zoomControl: false, maxZoom: 22 }).setView([34.8526, -82.3940], 15);
 map.createPane('parcels'); map.getPane('parcels').style.zIndex = 450; map.getPane('parcels').style.pointerEvents = 'none';
 
@@ -649,13 +691,27 @@ let lastKnownLon = null;
 let lastKnownAccuracy = 999;
 let activeTargetPoint = null;
 
+let isDrawerCompact = false;
+window.toggleBottomDrawerCompact = function() {
+    isDrawerCompact = !isDrawerCompact;
+    const drawer = document.getElementById('bottomDrawer');
+    const btn = document.getElementById('drawerCollapseBtn');
+    if (isDrawerCompact) {
+        drawer.classList.add('minimized');
+        btn.innerText = "EXPAND ▼";
+    } else {
+        drawer.classList.remove('minimized');
+        btn.innerText = "MINIMIZE ▲";
+    }
+};
+
 function getAutoCRS(lat, lon) {
     if (lat >= 32.0 && lat <= 35.2 && lon >= -83.5 && lon <= -78.5) {
         return "EPSG:32133"; // NAD83 South Carolina ftUS
     } else if (lat >= 33.8 && lat <= 36.6 && lon >= -84.3 && lon <= -75.4) {
-        return "EPSG:2264"; // NAD83 North Carolina ftUS
+        return "EPSG:2264"; // NAD83 NC State Plane ftUS
     } else if (lat >= 24.3 && lat <= 31.0 && lon >= -87.6 && lon <= -79.8) {
-        return "EPSG:2236"; // NAD83 Florida East ftUS
+        return "EPSG:2236"; // NAD83 FL East ftUS
     } else {
         const utmZone = Math.floor((lon + 180) / 6) + 1;
         const epsg = lat >= 0 ? (32600 + utmZone) : (32700 + utmZone);
@@ -856,7 +912,7 @@ window.loadPointManagerTable = function() {
     pinData.forEach((pt, i) => {
         const tr = document.createElement('tr');
         const photoCell = pt.photo ? `<img src="${pt.photo}" style="width:40px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="viewPhotoLightbox('${pt.photo}', 'PT${pt.id}: ${pt.desc}')">` : `<span style="color:#666; font-size:0.75rem;">None</span>`;
-        tr.innerHTML = `<td><input type="number" id="mId_${i}" value="${pt.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${i}" value="${pt.desc}"></td><td>${photoCell}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="updatePoint(${i})">SAVE</button><button class="del-row-btn" onclick="deletePointManager(${i})">DEL</button></td>`;
+        tr.innerHTML = `<td><input type="number" id="mId_${i}" value="${pt.id}" style="width:60px;"></td><td><input type="text" id="mDesc_${i}" value="${pt.desc}"></td><td>${photoCell}</td><td style="display:flex; gap:0.3rem; justify-content:center; align-items:center;"><button class="btn" style="background:#3b82f6; font-size:0.7rem; padding:0.2rem 0.4rem; width:auto;" onclick="triggerHaptic(20); updatePoint(${i})">SAVE</button><button class="del-row-btn" onclick="triggerHaptic(20); deletePointManager(${i})">DEL</button></td>`;
         tbody.appendChild(tr);
     });
 };
@@ -902,6 +958,7 @@ window.openModal = function(modalId) {
     closeDrawer(); 
     if(modalId === 'dataHubOverlay') { loadPointManagerTable(); } 
     if(modalId === 'projectManagerOverlay') { loadProjectManagerList(); }
+    if(modalId === 'codeLibraryOverlay') { buildCodeLibraryList(); }
     const modal = document.getElementById(modalId);
     if(modal) { modal.style.display = 'flex'; }
 };
@@ -951,7 +1008,7 @@ function loadProjectManagerList() {
         const isCurrent = p.id === activeProjectId;
         item.innerHTML = `
             <span style="font-weight: 900; color: ${isCurrent ? 'var(--accent)' : 'white'};">${p.name} ${isCurrent ? '(ACTIVE)' : ''}</span>
-            <button class="btn" style="background: ${isCurrent ? '#4b5563' : 'var(--accent)'}; font-size: 0.7rem; padding: 0.3rem 0.6rem; width: auto;" ${isCurrent ? 'disabled' : ''} onclick="switchProject('${p.id}'); closeModal('projectManagerOverlay');">SWITCH</button>
+            <button class="btn" style="background: ${isCurrent ? '#4b5563' : 'var(--accent)'}; font-size: 0.7rem; padding: 0.3rem 0.6rem; width: auto;" ${isCurrent ? 'disabled' : ''} onclick="triggerHaptic(20); switchProject('${p.id}'); closeModal('projectManagerOverlay');">SWITCH</button>
         `;
         container.appendChild(item);
     });
@@ -1022,10 +1079,10 @@ function renderPin(pt, idx) {
             <b style="font-size:0.95rem; color:#3b82f6;">PT ${pt.id}</b><br>
             <span style="font-size:0.8rem; font-weight:bold; color:#333;">${pt.desc}</span><br>
             <div style="display:flex; flex-direction:column; gap:0.3rem; margin-top:0.6rem;">
-                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="setStakeoutTarget(${idx})">STAKE OUT</button>
-                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="centerOnPoint(${pt.lat}, ${pt.lng})">CENTER</button>
-                <button class="btn" style="background:#f59e0b; font-size:0.7rem; padding:0.3rem;" onclick="selectPointForInverse(${idx})">SELECT FOR INV</button>
-                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="deletePointFromMap(${idx})">DELETE</button>
+                <button class="btn" style="background:#10b981; font-size:0.7rem; padding:0.3rem;" onclick="triggerHaptic(20); setStakeoutTarget(${idx})">STAKE OUT</button>
+                <button class="btn" style="background:#38bdf8; font-size:0.7rem; padding:0.3rem;" onclick="triggerHaptic(20); centerOnPoint(${pt.lat}, ${pt.lng})">CENTER</button>
+                <button class="btn" style="background:#f59e0b; font-size:0.7rem; padding:0.3rem;" onclick="triggerHaptic(20); selectPointForInverse(${idx})">SELECT FOR INV</button>
+                <button class="btn" style="background:#ef4444; font-size:0.7rem; padding:0.3rem;" onclick="triggerHaptic(20); deletePointFromMap(${idx})">DELETE</button>
             </div>
         </div>
     `;
@@ -1088,7 +1145,6 @@ function rebuildSmartLinework() {
     Object.values(activeStrings).forEach(s => { if(s) map.removeLayer(s); }); activeStrings = {};
     pinData.forEach(pt => {
         const parts = pt.desc.split(' '); const base = parts[0]; const isBegin = parts.includes('B'); const isEnd = parts.includes('E');
-        // Universal linework: any code with B/E or standard linear codes will string together
         let key = base; 
         if(isBegin || !activeStrings[key]) { 
             if(isBegin) key = base + "_" + pt.id; 
@@ -1177,43 +1233,115 @@ window.setCadAlignment = function(coords, name) {
 };
 
 const cadCodes = [
-{code: "RECON", desc: "Generic Recon Point"}, {code: "IPF", desc: "Iron Pipe Found"}, {code: "IRF", desc: "Iron Rebar Found"},
-{code: "CMF", desc: "Concrete Monument Found"}, {code: "PK", desc: "PK Nail Found"}, {code: "MAG", desc: "Mag Nail Found"},
-{code: "CP", desc: "Control Point"}, {code: "BM", desc: "Benchmark Elevation"}, {code: "EP", desc: "Edge of Pavement"},
-{code: "BOC", desc: "Back of Curb"}, {code: "FL", desc: "Flow Line / Gutter"}, {code: "TC", desc: "Top of Curb"},
-{code: "CL", desc: "Roadway Centerline"}, {code: "SW", desc: "Sidewalk Edge"}, {code: "FNC", desc: "Fence Line Post"},
-{code: "SS", desc: "Sanitary Sewer Manhole"}, {code: "SSINV", desc: "Sanitary Sewer Invert"}, {code: "W", desc: "Water Valve / Meter"},
-{code: "STM", desc: "Storm Drain Catch Basin"}, {code: "STMINV", desc: "Storm Drain Invert"}, {code: "AG", desc: "Gas Valve / Line"},
-{code: "E", desc: "Electric Power Pole"}, {code: "T", desc: "Telephone / Comm Pole"}, {code: "TREE", desc: "Individual Tree Trunk"},
-{code: "TOPO", desc: "Ground Topography Shot"}, {code: "BLDG", desc: "Building Corner"}
+{code: "RECON", desc: "Generic Recon Point", cat: "General"}, {code: "IPF", desc: "Iron Pipe Found", cat: "Monuments"}, {code: "IRF", desc: "Iron Rebar Found", cat: "Monuments"},
+{code: "CMF", desc: "Concrete Monument Found", cat: "Monuments"}, {code: "PK", desc: "PK Nail Found", cat: "Monuments"}, {code: "MAG", desc: "Mag Nail Found", cat: "Monuments"},
+{code: "CP", desc: "Control Point", cat: "Monuments"}, {code: "BM", desc: "Benchmark Elevation", cat: "Monuments"}, {code: "EP", desc: "Edge of Pavement", cat: "Pavement"},
+{code: "BOC", desc: "Back of Curb", cat: "Pavement"}, {code: "FL", desc: "Flow Line / Gutter", cat: "Pavement"}, {code: "TC", desc: "Top of Curb", cat: "Pavement"},
+{code: "CL", desc: "Roadway Centerline", cat: "Pavement"}, {code: "SW", desc: "Sidewalk Edge", cat: "Pavement"}, {code: "FNC", desc: "Fence Line Post", cat: "General"},
+{code: "SS", desc: "Sanitary Sewer Manhole", cat: "Utilities"}, {code: "SSINV", desc: "Sanitary Sewer Invert", cat: "Utilities"}, {code: "W", desc: "Water Valve / Meter", cat: "Utilities"},
+{code: "STM", desc: "Storm Drain Catch Basin", cat: "Utilities"}, {code: "STMINV", desc: "Storm Drain Invert", cat: "Utilities"}, {code: "AG", desc: "Gas Valve / Line", cat: "Utilities"},
+{code: "E", desc: "Electric Power Pole", cat: "Utilities"}, {code: "T", desc: "Telephone / Comm Pole", cat: "Utilities"}, {code: "TREE", desc: "Individual Tree Trunk", cat: "Topography"},
+{code: "TOPO", desc: "Ground Topography Shot", cat: "Topography"}, {code: "BLDG", desc: "Building Corner", cat: "Topography"}
 ];
 
 const searchInput = document.getElementById('searchInput'); const dropdownList = document.getElementById('dropdownList'); const pointNote = document.getElementById('pointNote'); const previewText = document.getElementById('finalDescPreview');
 let selectedBaseCode = "RECON"; let activeModifiers = [];
+
 function renderDropdown(filter = "") {
     dropdownList.innerHTML = ''; const q = filter.toLowerCase().trim();
     const matches = cadCodes.filter(c => c.code.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q));
     if(matches.length === 0) { dropdownList.style.display = 'none'; return; }
     matches.forEach(item => {
         const div = document.createElement('div'); div.className = 'dropdown-item'; div.innerHTML = `<span class="dropdown-code">${item.code}</span><span class="dropdown-desc">${item.desc}</span>`;
-        div.onclick = () => { selectedBaseCode = item.code; searchInput.value = item.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(div);
+        div.onclick = () => { triggerHaptic(20); selectedBaseCode = item.code; searchInput.value = item.code; dropdownList.style.display = 'none'; updatePreview(); }; dropdownList.appendChild(div);
     }); dropdownList.style.display = 'block';
 }
 
-searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); searchInput.addEventListener('input', (e) => { renderDropdown(e.target.value); selectedBaseCode = e.target.value.toUpperCase() || "RECON"; updatePreview(); }); document.addEventListener('click', (e) => { if(!document.getElementById('dropdownContainer').contains(e.target)) dropdownList.style.display = 'none'; }); window.toggleMod = function(btn, mod) { btn.classList.toggle('active'); if(activeModifiers.includes(mod)) activeModifiers = activeModifiers.filter(m => m !== mod); else activeModifiers.push(mod); updatePreview(); }; pointNote.addEventListener('input', updatePreview);
-function updatePreview() { let str = selectedBaseCode; if(activeModifiers.length) str += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) str += ` ${pointNote.value.trim().toUpperCase()}`; previewText.innerText = `PREVIEW: ${str || "RECON"}`; }
-function getFinalDescription() { let str = selectedBaseCode; if(activeModifiers.length) str += ` ${activeModifiers.join(" ")}`; if(pointNote.value.trim()) str += ` ${pointNote.value.trim().toUpperCase()}`; return str || "RECON"; }
+window.selectFavCode = function(code) {
+    selectedBaseCode = code;
+    searchInput.value = code;
+    updatePreview();
+};
 
-document.getElementById('centerBtn').addEventListener('click', () => { if (userMarker) map.setView(userMarker.getLatLng(), 19); });
+window.buildCodeLibraryList = function(filter = "") {
+    const container = document.getElementById('codeLibraryList');
+    container.innerHTML = '';
+    const q = filter.toLowerCase().trim();
+    const matches = cadCodes.filter(c => c.code.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.cat.toLowerCase().includes(q));
+    if(matches.length === 0) {
+        container.innerHTML = `<p style="color:#9ca3af; text-align:center; padding:1rem;">No matching codes found.</p>`;
+        return;
+    }
+    matches.forEach(item => {
+        const row = document.createElement('div');
+        row.style.cssText = "display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.4); padding: 0.6rem 1rem; border-radius: 0.5rem; border: 1px solid var(--glass-border); cursor: pointer;";
+        row.innerHTML = `
+            <div>
+                <b style="color:var(--accent); font-size:1rem; font-family:monospace;">${item.code}</b>
+                <span style="font-size:0.75rem; color:#9ca3af; margin-left:0.5rem;">[${item.cat}]</span>
+            </div>
+            <span style="font-size:0.85rem; color:white; text-align:right;">${item.desc}</span>
+        `;
+        row.onclick = () => {
+            triggerHaptic(25);
+            selectedBaseCode = item.code;
+            searchInput.value = item.code;
+            updatePreview();
+            closeModal('codeLibraryOverlay');
+        };
+        container.appendChild(row);
+    });
+};
+
+window.filterCodeLibrary = function(val) {
+    buildCodeLibraryList(val);
+};
+
+searchInput.addEventListener('focus', () => renderDropdown(searchInput.value)); 
+searchInput.addEventListener('input', (e) => { renderDropdown(e.target.value); selectedBaseCode = e.target.value.toUpperCase() || "RECON"; updatePreview(); }); 
+document.addEventListener('click', (e) => { if(!document.getElementById('dropdownContainer').contains(e.target)) dropdownList.style.display = 'none'; }); 
+
+window.toggleMod = function(btn, mod) { 
+    btn.classList.toggle('active'); 
+    if(activeModifiers.includes(mod)) activeModifiers = activeModifiers.filter(m => m !== mod); 
+    else activeModifiers.push(mod); 
+    updatePreview(); 
+}; 
+
+pointNote.addEventListener('input', updatePreview);
+
+function updatePreview() { 
+    let str = selectedBaseCode; 
+    if(activeModifiers.length) str += ` ${activeModifiers.join(" ")}`; 
+    if(pointNote.value.trim()) str += ` ${pointNote.value.trim().toUpperCase()}`; 
+    previewText.innerText = `PREVIEW: ${str || "RECON"}`; 
+}
+
+function getFinalDescription() { 
+    let str = selectedBaseCode; 
+    if(activeModifiers.length) str += ` ${activeModifiers.join(" ")}`; 
+    if(pointNote.value.trim()) str += ` ${pointNote.value.trim().toUpperCase()}`; 
+    return str || "RECON"; 
+}
+
+document.getElementById('centerBtn').addEventListener('click', () => { triggerHaptic(20); if (userMarker) map.setView(userMarker.getLatLng(), 19); });
 
 document.getElementById('gpsPinBtn').addEventListener('click', () => { 
     if(document.activeElement) document.activeElement.blur(); window.scrollTo(0, 0);
     if (!lastKnownLat) { alert("Awaiting GPS lock..."); return; } 
-    if (lastKnownAccuracy > window.qcTolerance) { if(!confirm(`WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; }
-    const avgOverlay = document.getElementById('averagingOverlay'); avgOverlay.style.display = 'flex'; let epochs = []; let timer = 5; document.getElementById('avgTimer').innerText = timer; if (navigator.vibrate) navigator.vibrate(50); 
+    const strictMode = document.getElementById('strictAccuracyToggle').value === 'block';
+    if (lastKnownAccuracy > window.qcTolerance) { 
+        if (strictMode) {
+            alert(`BLOCKED: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Exceeds strict QC tolerance of ${window.qcTolerance}').`);
+            return;
+        } else {
+            if(!confirm(`WARNING: GPS Accuracy is ±${lastKnownAccuracy.toFixed(2)} ft (Outside tolerance of ${window.qcTolerance}'). High dilution detected. Store point anyway?`)) return; 
+        }
+    }
+    const avgOverlay = document.getElementById('averagingOverlay'); avgOverlay.style.display = 'flex'; let epochs = []; let timer = 5; document.getElementById('avgTimer').innerText = timer; triggerHaptic(50); 
     const timerInterval = setInterval(() => { 
-        epochs.push({ lat: lastKnownLat, lon: lastKnownLon }); timer--; document.getElementById('avgTimer').innerText = timer; 
-        if (timer <= 0) { clearInterval(timerInterval); avgOverlay.style.display = 'none'; const lat = epochs.reduce((s,p)=>s+p.lat,0)/epochs.length; const lon = epochs.reduce((s,p)=>s+p.lon,0)/epochs.length; savePin(lat, lon); } 
+        epochs.push({ lat: lastKnownLat, lon: lastKnownLon }); timer--; document.getElementById('avgTimer').innerText = timer; triggerHaptic(30);
+        if (timer <= 0) { clearInterval(timerInterval); avgOverlay.style.display = 'none'; const lat = epochs.reduce((s,p)=>s+p.lat,0)/epochs.length; const lon = epochs.reduce((s,p)=>s+p.lon,0)/epochs.length; triggerHaptic([60, 60, 100]); savePin(lat, lon); } 
     }, 1000); 
 });
 
@@ -1351,8 +1479,8 @@ window.exportFieldBookLocal = function() {
 
 window.changeUIScale = function(scale) { document.body.className = document.body.className.replace(/scale-\w+/g, ''); if(scale !== 'scale-normal') document.body.classList.add(scale); localStorage.setItem('uiScale', scale); };
 window.updateStartId = function(val) { localStorage.setItem('startIdInput', val); }
-document.getElementById('startIdInput').value = localStorage.getItem('startIdInput'] || 1;
-window.togglePocketMode = () => { const overlay = document.getElementById('pocketModeOverlay'); overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex'; if (navigator.vibrate) navigator.vibrate(50); };
+document.getElementById('startIdInput').value = localStorage.getItem('startIdInput') || 1;
+window.togglePocketMode = () => { const overlay = document.getElementById('pocketModeOverlay'); overlay.style.display = overlay.style.display === 'flex' ? 'none' : 'flex'; };
 </script>
 </body>
 </html>
